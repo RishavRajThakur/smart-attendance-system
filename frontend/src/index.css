@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #f8fafc;
+    color: #1e293b;
+  }
+  
+  h1, h2, h3, h4, .font-heading {
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+/* Custom modern scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* SmartAttend Card aesthetics */
+.app-card {
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-radius: 1.25rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+}
+
+.app-card-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.app-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.08);
+}
+
+/* Subtle glowing button shadows */
+.btn-primary-glow {
+  background: linear-gradient(90deg, #0080ff 0%, #0052d4 100%);
+  box-shadow: 0 4px 14px 0 rgba(0, 102, 255, 0.35);
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-primary-glow:hover {
+  box-shadow: 0 6px 20px rgba(0, 102, 255, 0.45);
+  transform: translateY(-1px);
+}
+
+/* Login Card Glowing Royal Border */
+.login-frame-border {
+  border: 2px solid #2563eb;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.1), 0 25px 50px -12px rgba(37, 99, 235, 0.18);
+}
+
+/* Biometric Scan Beam Animation */
+@keyframes scan-beam {
+  0% { top: 0%; opacity: 0; }
+  25% { opacity: 0.8; }
+  50% { opacity: 1; }
+  75% { opacity: 0.8; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.animate-scan-beam {
+  animation: scan-beam 2.2s ease-in-out infinite;
+}
+
+/* Circular pulse ring */
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity: 0.7; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.7; }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2s infinite ease-in-out;
+}
+
+/* Sidebar wave background effect */
+.sidebar-bg {
+  background: linear-gradient(180deg, #020c22 0%, #05163a 50%, #071f4e 100%);
+}
