@@ -83,6 +83,16 @@ def seed_database():
         fac1 = db.query(User).filter(User.email == "faculty@college.edu").first()
         fac2 = db.query(User).filter(User.email == "ananya.sen@college.edu").first()
 
+        # Only seed dummy students and attendance sessions if explicitly requested via AUTO_SEED_DEMO=1
+        import os
+        should_seed_demo = os.getenv("AUTO_SEED_DEMO", "0") == "1"
+        if not should_seed_demo:
+            # Refresh in-memory cache with current real students
+            all_students = db.query(Student).filter(Student.is_active == True).all()
+            embedding_cache.refresh(all_students)
+            print(f"[Seed] Admin verified. Running in clean user mode with {len(all_students)} enrolled student(s).")
+            return
+
         # 2. Seed / Update Courses with Faculty Assignment
         courses_data = [
             ("CS701", "Deep Learning & Neural Networks", 24, fac1.id if fac1 else None),
