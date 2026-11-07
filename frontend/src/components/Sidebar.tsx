@@ -253,19 +253,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
             );
           })}
 
-          {/* Logout Action (Positioned directly below System Settings where marked in red) */}
-          <div className="pt-2">
-            <button
-              onClick={onLogout}
-              className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-xs font-semibold text-rose-400/90 hover:text-white hover:bg-rose-500/20 border border-transparent hover:border-rose-500/30 transition-all duration-200 cursor-pointer group"
-              title="Sign Out of session"
-            >
-              <svg className="w-5 h-5 shrink-0 text-rose-400 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              <span>Logout</span>
-            </button>
-          </div>
+          {/* Logout Action (Exact same spacing as all navigation items) */}
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-xs font-semibold text-rose-400/90 hover:text-white hover:bg-rose-500/20 border border-transparent hover:border-rose-500/30 transition-all duration-200 cursor-pointer group"
+            title="Sign Out of session"
+          >
+            <svg className="w-5 h-5 shrink-0 text-rose-400 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span>Logout</span>
+          </button>
         </nav>
       </div>
 
