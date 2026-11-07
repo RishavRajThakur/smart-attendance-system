@@ -25,7 +25,10 @@ def login(creds: LoginRequest, db: Session = Depends(get_db)):
 
     # 1. Admin Role Login
     if requested_role == "admin":
-        user = db.query(User).filter(User.email.ilike(email_or_roll)).first()
+        if email_or_roll.lower() in ["admin@college.edu", "admin", "bsaho@kiit.ac.in"]:
+            user = db.query(User).filter((User.email.ilike(email_or_roll)) | (User.role == "admin")).first()
+        else:
+            user = db.query(User).filter(User.email.ilike(email_or_roll)).first()
         if not user:
             student_check = db.query(Student).filter(
                 (Student.roll_number.ilike(email_or_roll)) | (Student.email.ilike(email_or_roll))
@@ -37,7 +40,7 @@ def login(creds: LoginRequest, db: Session = Depends(get_db)):
                 )
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Admin account not found. Please check your administrator email."
+                detail="Admin account not found. Please check your administrator email (bsaho@kiit.ac.in)."
             )
         if user.role != "admin":
             raise HTTPException(
@@ -57,8 +60,8 @@ def login(creds: LoginRequest, db: Session = Depends(get_db)):
             "user_id": user.id,
             "full_name": user.full_name,
             "email": user.email,
-            "department": getattr(user, "department", "Administration"),
-            "designation": getattr(user, "designation", "System Administrator & HOD"),
+            "department": getattr(user, "department", "Computer Science & Engineering"),
+            "designation": getattr(user, "designation", "Director & System Administrator"),
             "photo_url": getattr(user, "photo_url", None)
         }
 
@@ -298,9 +301,9 @@ def get_demo_accounts():
     return [
         {
             "role": "Admin",
-            "email": "admin@college.edu",
+            "email": "bsaho@kiit.ac.in",
             "password": "admin123",
-            "description": "Administrator"
+            "description": "Administrator (Prof. Dr. Biswajit Sahoo - Director)"
         },
         {
             "role": "Faculty",

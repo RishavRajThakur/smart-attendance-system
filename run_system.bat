@@ -29,7 +29,7 @@ echo System successfully launched!
 echo - Web Application:   %PORTAL_URL%
 echo - API Documentation: http://localhost:8000/docs
 echo.
-echo Demo Admin Login:    admin@college.edu / admin123
+echo Demo Admin Login:    bsaho@kiit.ac.in / admin123 (Prof. Dr. Biswajit Sahoo - Director)
 echo Demo Faculty Login:  faculty@college.edu / faculty123
 echo Demo Student Login:  2103001 / student123
 echo ======================================================================

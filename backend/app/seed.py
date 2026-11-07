@@ -30,18 +30,22 @@ def seed_database():
 
     try:
         # 1. Seed Faculty & Admin Users
-        admin_user = db.query(User).filter(User.email == "admin@college.edu").first()
+        admin_user = db.query(User).filter((User.email == "bsaho@kiit.ac.in") | (User.email == "admin@college.edu") | (User.role == "admin")).first()
         if not admin_user:
             admin_user = User(
-                email="admin@college.edu",
+                email="bsaho@kiit.ac.in",
                 password_hash=hash_password("admin123"),
-                full_name="Dr. R. K. Mishra (HOD)",
+                full_name="Prof. Dr. Biswajit Sahoo (Director)",
                 role="admin",
                 department="Computer Science & Engineering",
-                designation="Head of Department & System Administrator",
+                designation="Director & System Administrator",
                 phone="+91 98765 43210"
             )
             db.add(admin_user)
+        else:
+            admin_user.email = "bsaho@kiit.ac.in"
+            admin_user.full_name = "Prof. Dr. Biswajit Sahoo (Director)"
+            admin_user.designation = "Director & System Administrator"
 
         fac1 = db.query(User).filter(User.email == "faculty@college.edu").first()
         if not fac1:

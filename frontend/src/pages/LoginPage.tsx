@@ -12,7 +12,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const [tab, setTab] = useState<RoleType>('admin');
 
   // Input states per role for convenience
-  const [adminEmail, setAdminEmail] = useState('admin@college.edu');
+  const [adminEmail, setAdminEmail] = useState('bsaho@kiit.ac.in');
   const [adminPassword, setAdminPassword] = useState('admin123');
 
   const [facultyEmail, setFacultyEmail] = useState('faculty@college.edu');
@@ -172,7 +172,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                     required
                     value={adminEmail}
                     onChange={(e) => setAdminEmail(e.target.value)}
-                    placeholder="admin@college.edu"
+                    placeholder="bsaho@kiit.ac.in"
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-transparent text-slate-800 text-xs sm:text-sm placeholder:text-slate-400 focus:outline-none"
                   />
                 </div>
@@ -279,7 +279,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 type="button"
                 onClick={() => {
                   if (tab === 'admin') {
-                    setAdminEmail('admin@college.edu');
+                    setAdminEmail('bsaho@kiit.ac.in');
                     setAdminPassword('admin123');
                   } else if (tab === 'faculty') {
                     setFacultyEmail('faculty@college.edu');
@@ -333,11 +333,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             </div>
             <div className="grid grid-cols-3 gap-2 text-[10px]">
               <div 
-                onClick={() => { setRoleTab('admin'); setAdminEmail('admin@college.edu'); setAdminPassword('admin123'); }}
+                onClick={() => { setRoleTab('admin'); setAdminEmail('bsaho@kiit.ac.in'); setAdminPassword('admin123'); }}
                 className="p-1.5 rounded-lg bg-white border border-slate-200/60 hover:border-blue-400 cursor-pointer transition"
               >
                 <div className="font-bold text-slate-800">Admin</div>
-                <div className="text-slate-500 truncate">admin@college.edu</div>
+                <div className="text-slate-500 truncate">bsaho@kiit.ac.in</div>
                 <div className="text-slate-400 font-mono">admin123</div>
               </div>
               <div 

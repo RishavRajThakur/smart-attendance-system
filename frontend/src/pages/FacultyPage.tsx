@@ -146,7 +146,7 @@ export const FacultyPage: React.FC<FacultyPageProps> = ({
   };
 
   const handleDeleteFaculty = async (fac: FacultyMember) => {
-    if (fac.role === 'admin' || fac.email === 'admin@college.edu') {
+    if (fac.role === 'admin' || fac.email === 'bsaho@kiit.ac.in' || fac.email === 'admin@college.edu') {
       alert('Administrator accounts cannot be deleted.');
       return;
     }

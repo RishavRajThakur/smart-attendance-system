@@ -27,7 +27,7 @@ Double-click `run_system.bat` in the project root folder. It automatically boots
 
 ### Demo Credentials by Role:
 1. **Admin Portal**:
-   - User ID: `admin@college.edu`
+   - User ID: `bsaho@kiit.ac.in` (Prof. Dr. Biswajit Sahoo - Director)
    - Password: `admin123`
    - Permissions: Master control, Faculty Directory & Password Reset, Subject/Course Management, Full Student Registry, Full Audit Records.
 2. **Faculty Portal**:

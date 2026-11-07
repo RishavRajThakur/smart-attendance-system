@@ -190,7 +190,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const items = isAdmin ? adminNavItems : isFaculty ? facultyNavItems : studentNavItems;
 
   const roleBadge = isAdmin
-    ? 'Admin • HOD'
+    ? 'Admin • Director'
     : isFaculty
     ? 'Faculty • CSE'
     : 'Student • 7th Sem';

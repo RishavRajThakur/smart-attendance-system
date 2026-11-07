@@ -29,8 +29,8 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout, onNavigate }) =>
 
   const avatarUrl = getUserAvatar(user, user?.role || 'faculty');
 
-  const displayName = user?.full_name || (isAdmin ? 'Dr. R. K. Mishra' : isFaculty ? 'Prof. Manas Ranjan Biswal' : 'Student');
-  const roleDisplay = isAdmin ? 'System Admin' : isFaculty ? 'Faculty Instructor' : 'Student';
+  const displayName = user?.full_name || (isAdmin ? 'Prof. Dr. Biswajit Sahoo' : isFaculty ? 'Prof. Manas Ranjan Biswal' : 'Student');
+  const roleDisplay = isAdmin ? 'Director & System Admin' : isFaculty ? 'Faculty Instructor' : 'Student';
 
   const notifications = [
     { id: 1, title: 'Attendance Marked', desc: '4 students marked via Face Recognition in CSE-302', time: '10 min ago' },
