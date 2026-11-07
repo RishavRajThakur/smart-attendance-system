@@ -18,7 +18,7 @@ def run_tests():
 
     # 1. Test Admin Login
     admin_res = client.post("/api/auth/login", json={
-        "email": "admin@college.edu",
+        "email": "bsaho@kiit.ac.in",
         "password": "admin123",
         "role": "admin"
     })
