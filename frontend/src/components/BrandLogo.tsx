@@ -21,7 +21,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       }`}>
         <img
           src="/assets/grad_cap_book.jpg"
-          alt="SmartAttend Logo"
+          alt="Smart Attendance Logo"
           className="w-full h-full object-contain rounded-2xl drop-shadow-md"
         />
       </div>
@@ -31,7 +31,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
         size === 'lg' ? 'text-3xl' : size === 'sm' ? 'text-lg' : 'text-2xl'
       }`}>
         <span className={isDark ? 'text-white' : 'text-[#0f172a]'}>Smart</span>
-        <span className="text-[#1d72fe]">Attend</span>
+        <span className="text-[#1d72fe] ml-2">Attendance</span>
       </div>
 
       {/* Subtitle */}

@@ -221,8 +221,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             />
           </div>
           <div>
-            <div className="text-white font-extrabold text-lg tracking-tight font-heading leading-tight">
-              Smart<span className="text-[#2b82fe]">Attend</span>
+            <div className="text-white font-extrabold text-base tracking-tight font-heading leading-tight">
+              Smart <span className="text-[#2b82fe]">Attendance</span>
             </div>
             <div className="text-slate-400 text-[11px] font-medium leading-tight">
               AI Face Attendance System
