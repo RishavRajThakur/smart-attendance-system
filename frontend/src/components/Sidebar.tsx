@@ -263,13 +263,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </button>
             );
           })}
+
+          {/* Logout Action (Positioned directly below System Settings where marked in red) */}
+          <div className="pt-2">
+            <button
+              onClick={onLogout}
+              className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-xs font-semibold text-rose-400/90 hover:text-white hover:bg-rose-500/20 border border-transparent hover:border-rose-500/30 transition-all duration-200 cursor-pointer group"
+              title="Sign Out of session"
+            >
+              <svg className="w-5 h-5 shrink-0 text-rose-400 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span>Logout</span>
+            </button>
+          </div>
         </nav>
       </div>
 
-      {/* Bottom Profile & Logout Section */}
+      {/* Bottom Profile Section */}
       <div className="p-5 relative z-10 border-t border-white/[0.06]">
         {/* Profile Card */}
-        <div className="flex items-center gap-3 p-2 rounded-xl bg-white/[0.04] border border-white/[0.08] mb-3">
+        <div className="flex items-center gap-3 p-2 rounded-xl bg-white/[0.04] border border-white/[0.08]">
           <img
             src={avatarUrl}
             alt={userName}
@@ -285,17 +299,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           </div>
         </div>
-
-        {/* Logout Action */}
-        <button
-          onClick={onLogout}
-          className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
-        >
-          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          <span>Logout</span>
-        </button>
       </div>
     </aside>
   );
