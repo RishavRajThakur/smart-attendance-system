@@ -211,7 +211,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Brand Header */}
         <div 
           onClick={() => onNavigate(isStudent ? 'student-portal' : 'dashboard')}
-          className="flex items-center gap-3 mb-7 cursor-pointer group"
+          className="flex items-center gap-3 mb-5 cursor-pointer group"
         >
           <div className="w-10 h-10 rounded-xl overflow-hidden shadow-md flex items-center justify-center bg-white/5 border border-white/10 group-hover:scale-105 transition-transform">
             <img
@@ -229,6 +229,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Top Dividing Line (marked in red) */}
+        <div className="border-t border-white/[0.12] mb-4"></div>
 
         {/* Navigation Items */}
         <nav className="space-y-1">
@@ -266,8 +269,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
       </div>
 
-      {/* Bottom Profile Section */}
-      <div className="p-5 relative z-10 border-t border-white/[0.06]">
+      {/* Bottom Profile Section with Visible Divider Line (marked in red) */}
+      <div className="p-5 relative z-10 border-t border-white/[0.12]">
         {/* Profile Card */}
         <div className="flex items-center gap-3 p-2 rounded-xl bg-white/[0.04] border border-white/[0.08]">
           <img
