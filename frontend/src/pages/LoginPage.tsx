@@ -126,6 +126,24 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               </svg>
               <span>Student</span>
             </button>
+
+            {/* 4. KIIT SAP Portal Option */}
+            <a
+              href="https://kiit.ac.in/sap/"
+              target="_blank"
+              rel="noopener noreferrer"
+              id="login-tab-kiit-sap"
+              className="flex-1 py-2 px-1 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer text-emerald-700 hover:text-emerald-900 bg-emerald-50/80 hover:bg-emerald-100 border border-emerald-200/90 shadow-xs"
+              title="Open KIIT SAP Portal"
+            >
+              <svg className="w-3.5 h-3.5 shrink-0 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+              <span>KIIT SAP</span>
+              <svg className="w-2.5 h-2.5 shrink-0 text-emerald-600/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
           </div>
 
 
@@ -308,22 +326,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               )}
             </button>
 
-            {/* KIIT SAP Portal Button */}
-            <a
-              href="https://kiit.ac.in/sap/"
-              target="_blank"
-              rel="noopener noreferrer"
-              id="btn-kiit-sap-portal"
-              className="w-full mt-2.5 py-2.5 px-4 rounded-xl text-emerald-800 hover:text-emerald-950 font-bold text-xs sm:text-sm bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 hover:border-emerald-400 shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer group"
-            >
-              <svg className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-              <span>KIIT SAP Portal</span>
-              <svg className="w-3.5 h-3.5 text-emerald-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform shrink-0 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </a>
+
           </form>
 
           {/* Quick Demo Reference Footer */}
