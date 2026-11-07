@@ -31,8 +31,7 @@ Double-click `run_system.bat` in the project root folder. It automatically boots
    - Password: `admin123`
    - Permissions: Master control, Faculty Directory & Password Reset, Subject/Course Management, Full Student Registry, Full Audit Records.
 2. **Faculty Portal**:
-   - Faculty 1: `faculty@college.edu` / `faculty123` (Prof. Manas Ranjan Biswal)
-   - Faculty 2: `ananya.sen@college.edu` / `faculty123` (Dr. Ananya Sen)
+   - Faculty ID: `faculty@college.edu` / `faculty123` (Prof. Manas Ranjan Biswal)
    - Permissions: Restricted self-view (cannot view other faculty members' profiles), assigned course & student view, live attendance kiosk.
 3. **Student Portal**:
    - Roll Number / User ID: `2103001` (Aman Kumar) or `2021CSE042` (Rahul Sharma)

@@ -64,24 +64,10 @@ def seed_database():
             fac1.department = "Computer Science & Engineering"
             fac1.designation = "Assistant Professor & Lab Lead"
 
-        fac2 = db.query(User).filter(User.email == "ananya.sen@college.edu").first()
-        if not fac2:
-            fac2 = User(
-                email="ananya.sen@college.edu",
-                password_hash=hash_password("faculty123"),
-                full_name="Prof. Ananya Sen",
-                role="faculty",
-                department="Computer Science & Engineering",
-                designation="Associate Professor",
-                phone="+91 98222 33445"
-            )
-            db.add(fac2)
-
         db.commit()
 
         # Re-fetch users to get IDs
         fac1 = db.query(User).filter(User.email == "faculty@college.edu").first()
-        fac2 = db.query(User).filter(User.email == "ananya.sen@college.edu").first()
 
         # Only seed dummy students and attendance sessions if explicitly requested via AUTO_SEED_DEMO=1
         import os
