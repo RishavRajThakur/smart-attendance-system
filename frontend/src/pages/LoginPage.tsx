@@ -129,7 +129,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
             {/* 4. KIIT SAP Option */}
             <a
-              href="https://kiit.ac.in/sap/"
+              href="https://kiitportal.kiituniversity.net/"
               target="_blank"
               rel="noopener noreferrer"
               id="login-tab-kiit-sap"
