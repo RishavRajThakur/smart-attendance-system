@@ -15,20 +15,20 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 
   return (
     <div className="flex flex-col items-center select-none text-center">
-      {/* Centered KIIT Logo */}
+      {/* 3D Cap & Glowing Book Icon Container */}
       <div className={`relative flex items-center justify-center transition-transform hover:scale-105 ${
-        size === 'lg' ? 'w-18 h-18 mb-2' : size === 'sm' ? 'w-10 h-10 mb-1' : 'w-16 h-16 mb-1.5'
+        size === 'lg' ? 'w-24 h-24 mb-3' : size === 'sm' ? 'w-10 h-10 mb-1' : 'w-16 h-16 mb-2'
       }`}>
         <img
           src="/assets/grad_cap_book.jpg"
-          alt="KIIT Logo"
-          className="w-full h-full object-contain rounded-xl drop-shadow-sm"
+          alt="SmartAttend Logo"
+          className="w-full h-full object-contain rounded-2xl drop-shadow-md"
         />
       </div>
 
       {/* Brand Title */}
-      <div className={`flex items-center justify-center font-heading font-black tracking-tight ${
-        size === 'lg' ? 'text-[26px]' : size === 'sm' ? 'text-lg' : 'text-2xl'
+      <div className={`flex items-center justify-center font-heading font-extrabold tracking-tight ${
+        size === 'lg' ? 'text-3xl' : size === 'sm' ? 'text-lg' : 'text-2xl'
       }`}>
         <span className={isDark ? 'text-white' : 'text-[#0f172a]'}>Smart</span>
         <span className="text-[#1d72fe]">Attend</span>
@@ -36,8 +36,8 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 
       {/* Subtitle */}
       {subtitle && (
-        <p className={`font-semibold tracking-tight ${
-          size === 'lg' ? 'text-xs mt-0.5' : size === 'sm' ? 'text-[10px]' : 'text-xs mt-0.5'
+        <p className={`font-medium ${
+          size === 'lg' ? 'text-xs mt-1' : size === 'sm' ? 'text-[10px]' : 'text-xs mt-0.5'
         } ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
           {subtitle}
         </p>

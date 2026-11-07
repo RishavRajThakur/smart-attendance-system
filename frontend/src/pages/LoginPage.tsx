@@ -66,16 +66,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gradient-to-tr from-blue-400/10 via-cyan-400/10 to-indigo-400/10 rounded-full blur-[140px] pointer-events-none"></div>
 
       {/* Main Login Card */}
-      <div className="w-full max-w-[450px] relative z-10">
-        <div className="bg-white rounded-[24px] px-6 py-5 sm:px-7 sm:py-5 login-frame-border relative overflow-hidden shadow-xl">
+      <div className="w-full max-w-[460px] relative z-10">
+        <div className="bg-white rounded-[26px] p-7 sm:p-8 login-frame-border relative overflow-hidden shadow-xl">
           
-          {/* Top Brand Logo - Balanced & Centered */}
-          <div className="mb-4">
-            <BrandLogo size="md" subtitle="Smart Student Face Attendance System" theme="light" />
+          {/* Top Brand Logo */}
+          <div className="mb-6">
+            <BrandLogo size="lg" subtitle="Smart Student Face Attendance System" theme="light" />
           </div>
 
           {/* EXACT THREE USER ROLES SELECTOR: 1. Admin, 2. Faculty, 3. Student */}
-          <div className="flex rounded-2xl bg-[#f1f5f9] p-1.5 mb-3.5 border border-slate-200/70 gap-1">
+          <div className="flex rounded-2xl bg-[#f1f5f9] p-1.5 mb-5 border border-slate-200/70 gap-1">
             {/* 1. Admin Option */}
             <button
               type="button"
@@ -327,7 +327,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           </form>
 
           {/* Quick Demo Reference Footer */}
-          <div className="mt-4 pt-3.5 border-t border-slate-100 bg-slate-50/80 -mx-6 -mb-5 sm:-mx-7 sm:-mb-5 p-3.5 text-[11px] text-slate-500 rounded-b-[24px]">
+          <div className="mt-5 pt-4 border-t border-slate-100 bg-slate-50/80 -mx-7 -mb-7 sm:-mx-8 sm:-mb-8 p-4 text-[11px] text-slate-500 rounded-b-[26px]">
             <div className="font-bold text-slate-700 mb-1 flex items-center gap-1.5">
               <span>Quick Demo Accounts:</span>
             </div>
