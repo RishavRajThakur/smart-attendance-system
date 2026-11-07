@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import type { User } from '../types';
 
 interface NavbarProps {
@@ -11,6 +11,19 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({ user, onNavigate }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Global Ctrl+K / Cmd+K shortcut listener to focus search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Format today's date matching design (e.g. "Tue, 30 Sep 2026")
   const today = new Date();
@@ -31,7 +44,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onNavigate }) => {
 
   return (
     <header className="h-[70px] bg-white border-b border-slate-100 sticky top-0 z-30 px-6 sm:px-8 flex items-center justify-between select-none">
-      {/* Search Input Bar */}
+      {/* Search Input Bar with Ctrl+K badge */}
       <div className="flex-1 max-w-md">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -40,6 +53,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onNavigate }) => {
             </svg>
           </div>
           <input
+            ref={searchInputRef}
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -49,8 +63,13 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onNavigate }) => {
               }
             }}
             placeholder={isStudent ? "Search attendance records..." : "Search students, faculty, or records..."}
-            className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#f1f5f9] text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white border border-transparent focus:border-slate-200 transition"
+            className="w-full pl-10 pr-16 py-2 rounded-xl bg-[#f1f5f9] text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white border border-transparent focus:border-slate-200 transition"
           />
+          <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
+            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 bg-white border border-slate-200 rounded shadow-xs">
+              Ctrl K
+            </kbd>
+          </div>
         </div>
       </div>
 
