@@ -69,9 +69,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       <div className="w-full max-w-[450px] relative z-10">
         <div className="bg-white rounded-[24px] px-6 py-5 sm:px-7 sm:py-5 login-frame-border relative overflow-hidden shadow-xl">
           
-          {/* Top Brand Logo - Compact Layout */}
+          {/* Top Brand Logo - Balanced & Centered */}
           <div className="mb-4">
-            <BrandLogo layout="horizontal" subtitle="Smart Student Face Attendance System" theme="light" />
+            <BrandLogo size="md" subtitle="Smart Student Face Attendance System" theme="light" />
           </div>
 
           {/* EXACT THREE USER ROLES SELECTOR: 1. Admin, 2. Faculty, 3. Student */}
