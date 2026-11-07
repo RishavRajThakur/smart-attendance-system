@@ -43,14 +43,11 @@ export const DefaultersPage: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center gap-2.5">
-                <h1 className="text-xl font-extrabold text-slate-900 font-heading">University 75% Attendance Defaulter Radar</h1>
+                <h1 className="text-xl font-extrabold text-slate-900 font-heading">Attendance Defaulters</h1>
                 <span className="text-[10px] uppercase font-extrabold px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200">
-                  Critical Compliance
+                  Below 75%
                 </span>
               </div>
-              <p className="text-xs text-slate-600 mt-1.5 leading-relaxed max-w-3xl">
-                As per University Examination Regulations, a minimum of <strong>75% attendance</strong> is statutory for eligibility to appear for 7th-Semester Major Project and End-Term Exams. The students flagged below are currently under the 75% threshold and subject to debarment notices.
-              </p>
             </div>
           </div>
         </div>
@@ -69,14 +66,14 @@ export const DefaultersPage: React.FC = () => {
         <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm border-l-4 border-l-amber-500">
           <div className="text-xs font-bold uppercase tracking-wider text-amber-600">Statutory Benchmark</div>
           <div className="text-3xl font-extrabold font-heading text-amber-600 mt-1">75.0%</div>
-          <div className="text-[11px] text-slate-500 mt-1">UGC & University Examination Minimum</div>
+          <div className="text-[11px] text-slate-500 mt-1">University Minimum Requirement</div>
         </div>
 
         {/* Card 3: Blue Highlight (Action mode) */}
         <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm border-l-4 border-l-blue-500">
           <div className="text-xs font-bold uppercase tracking-wider text-blue-600">Advisory Dispatch</div>
-          <div className="text-3xl font-extrabold font-heading text-slate-900 mt-1">One-Click Notice</div>
-          <div className="text-[11px] text-slate-500 mt-1">Instant electronic debarment warning</div>
+          <div className="text-3xl font-extrabold font-heading text-slate-900 mt-1">Notice</div>
+          <div className="text-[11px] text-slate-500 mt-1">Debarment warning</div>
         </div>
       </div>
 
@@ -85,7 +82,6 @@ export const DefaultersPage: React.FC = () => {
         <div className="p-5 border-b border-slate-100 flex items-center justify-between">
           <div>
             <h2 className="text-sm font-bold text-slate-900 font-heading">Students Under 75% Threshold</h2>
-            <p className="text-xs text-slate-500">Attendance deficiency breakdown and recovery calculations</p>
           </div>
           <span className="text-xs font-bold text-rose-600 bg-rose-50 px-3 py-1 rounded-xl border border-rose-100">
             {defaulters.length} Active Shortages

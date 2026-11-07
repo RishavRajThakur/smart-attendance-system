@@ -15,6 +15,10 @@ class Token(BaseModel):
     user_id: int
     full_name: str
     email: str
+    roll_number: Optional[str] = None
+    department: Optional[str] = "Computer Science"
+    designation: Optional[str] = None
+    photo_url: Optional[str] = None
 
 
 class TokenData(BaseModel):
@@ -25,6 +29,11 @@ class TokenData(BaseModel):
 class LoginRequest(BaseModel):
     email: str
     password: str
+    role: Optional[str] = None
+
+
+class ProfilePhotoRequest(BaseModel):
+    photo_base64: str
 
 
 class UserOut(BaseModel):
@@ -32,10 +41,56 @@ class UserOut(BaseModel):
     email: str
     full_name: str
     role: str
+    department: Optional[str] = "Computer Science"
+    designation: Optional[str] = None
+    phone: Optional[str] = None
+    photo_url: Optional[str] = None
     created_at: datetime
 
     class Config:
         from_attributes = True
+
+
+# --- Faculty Schemas ---
+class FacultyOut(BaseModel):
+    id: int
+    email: str
+    full_name: str
+    role: str = "faculty"
+    department: str = "Computer Science"
+    designation: str = "Assistant Professor"
+    phone: Optional[str] = None
+    photo_url: Optional[str] = None
+    assigned_courses: List[str] = []
+    course_ids: List[int] = []
+    total_sessions: int = 0
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class FacultyCreate(BaseModel):
+    email: str
+    password: str
+    full_name: str
+    department: str = "Computer Science"
+    designation: str = "Assistant Professor"
+    phone: Optional[str] = None
+    course_ids: Optional[List[int]] = None
+
+
+class FacultyUpdate(BaseModel):
+    email: Optional[str] = None
+    full_name: Optional[str] = None
+    department: Optional[str] = None
+    designation: Optional[str] = None
+    phone: Optional[str] = None
+    course_ids: Optional[List[int]] = None
+
+
+class PasswordResetRequest(BaseModel):
+    new_password: str
 
 
 # --- Student Schemas ---
@@ -73,12 +128,21 @@ class CourseBase(BaseModel):
 
 
 class CourseCreate(CourseBase):
-    pass
+    faculty_id: Optional[int] = None
+
+
+class CourseUpdate(BaseModel):
+    course_name: Optional[str] = None
+    department: Optional[str] = None
+    semester: Optional[int] = None
+    faculty_id: Optional[int] = None
 
 
 class CourseOut(CourseBase):
     id: int
     total_classes: int
+    faculty_id: Optional[int] = None
+    faculty_name: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -179,7 +243,11 @@ class DefaulterStudent(BaseModel):
 class AnalyticsOverview(BaseModel):
     total_students: int
     total_courses: int
+    total_faculty: int = 0
     active_sessions_today: int
+    present_today: int = 0
+    absent_today: int = 0
+    not_marked_today: int = 0
     overall_attendance_rate: float
     defaulters_count: int
     weekly_trends: List[Dict[str, Any]]

@@ -8,6 +8,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { LiveKioskPage } from './pages/LiveKioskPage';
 import { StudentRegistryPage } from './pages/StudentRegistryPage';
 import { FacultyPage } from './pages/FacultyPage';
+import { CoursesPage } from './pages/CoursesPage';
 import { AttendanceRecordsPage } from './pages/AttendanceRecordsPage';
 import { DefaultersPage } from './pages/DefaultersPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -22,10 +23,6 @@ export const App: React.FC = () => {
     // Check saved session
     const savedUser = api.getCurrentUser();
     if (savedUser) {
-      if (savedUser.role !== 'student' || !savedUser.full_name || savedUser.full_name.includes('Rishav')) {
-        savedUser.full_name = 'Prof. Manas Ranjan Biswal';
-        localStorage.setItem('user', JSON.stringify(savedUser));
-      }
       setCurrentUser(savedUser);
       if (savedUser.role === 'student') {
         setCurrentPage('student-portal');
@@ -38,8 +35,18 @@ export const App: React.FC = () => {
     const user: User = {
       id: userData.user_id,
       email: userData.email,
-      full_name: userData.role === 'student' ? (userData.full_name || 'Aman Kumar') : 'Prof. Manas Ranjan Biswal',
+      roll_number: userData.roll_number || (userData.role === 'student' ? (userData.email.split('@')[0] || '2103001') : undefined),
+      full_name: userData.full_name || (
+        userData.role === 'admin'
+          ? 'System Administrator'
+          : userData.role === 'faculty'
+          ? 'Faculty Member'
+          : 'Student'
+      ),
       role: userData.role,
+      department: userData.department,
+      designation: userData.designation,
+      photo_url: userData.photo_url
     };
     setCurrentUser(user);
     if (user.role === 'student') {
@@ -47,6 +54,11 @@ export const App: React.FC = () => {
     } else {
       setCurrentPage('dashboard');
     }
+  };
+
+  const handleUserUpdate = (updatedUser: User) => {
+    setCurrentUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
   const handleLogout = () => {
@@ -68,19 +80,44 @@ export const App: React.FC = () => {
     return <LoginPage onLoginSuccess={handleLoginSuccess} />;
   }
 
-  const displayName =
-    currentUser.role === 'student'
-      ? (currentUser.full_name && !currentUser.full_name.includes('Rishav') ? currentUser.full_name : 'Aman Kumar')
-      : 'Prof. Manas Ranjan Biswal';
+  const displayName = currentUser.full_name || (
+    currentUser.role === 'admin'
+      ? 'System Administrator'
+      : currentUser.role === 'faculty'
+      ? 'Faculty Member'
+      : 'Student'
+  );
+
+  // Strict role-based page authorization
+  let effectivePage = currentPage;
+  if (currentUser.role === 'student') {
+    // Students can ONLY access personal attendance portal, their records, or profile settings
+    if (currentPage !== 'student-portal' && currentPage !== 'records' && currentPage !== 'settings') {
+      effectivePage = 'student-portal';
+    }
+  } else if (currentUser.role === 'admin') {
+    // Admin cannot take attendance (kiosk is faculty-only) or access student-portal
+    if (currentPage === 'kiosk' || currentPage === 'student-portal') {
+      effectivePage = 'dashboard';
+    }
+  } else if (currentUser.role === 'faculty') {
+    // Faculty cannot access global curriculum courses creation or student portal
+    if (currentPage === 'courses' || currentPage === 'student-portal') {
+      effectivePage = 'dashboard';
+    }
+  }
+
+  const studentRoll = currentUser.roll_number || (currentUser.email.split('@')[0] || '2103001');
 
   return (
     <div className="h-screen w-screen overflow-hidden flex bg-[#f8fafc] text-slate-800">
-      {/* 1. Left Fixed Sidebar (Full Height Matching Image 2) */}
+      {/* 1. Left Fixed Sidebar */}
       <Sidebar
-        currentPage={currentPage}
+        currentPage={effectivePage}
         onNavigate={setCurrentPage}
         userRole={currentUser.role}
         userName={displayName}
+        currentUser={currentUser}
         onLogout={handleLogout}
       />
 
@@ -91,23 +128,44 @@ export const App: React.FC = () => {
           user={{ ...currentUser, full_name: displayName }}
           onLogout={handleLogout}
           onNavigate={setCurrentPage}
-          currentPage={currentPage}
+          currentPage={effectivePage}
         />
 
         {/* Scrollable Page Body */}
         <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-[#f8fafc]">
-          {currentPage === 'dashboard' && (
-            <DashboardPage onNavigate={setCurrentPage} userName={displayName} />
+          {effectivePage === 'dashboard' && (
+            <DashboardPage
+              onNavigate={setCurrentPage}
+              userName={displayName}
+              userRole={currentUser.role}
+              currentUser={currentUser}
+            />
           )}
-          {currentPage === 'kiosk' && <LiveKioskPage />}
-          {currentPage === 'students' && <StudentRegistryPage />}
-          {currentPage === 'faculty' && <FacultyPage onNavigate={setCurrentPage} />}
-          {currentPage === 'records' && <AttendanceRecordsPage />}
-          {currentPage === 'defaulters' && <DefaultersPage />}
-          {currentPage === 'settings' && <SettingsPage onNavigate={setCurrentPage} />}
-          {currentPage === 'student-portal' && (
+          {effectivePage === 'kiosk' && (
+            <LiveKioskPage onNavigate={setCurrentPage} userRole={currentUser.role} />
+          )}
+          {effectivePage === 'students' && <StudentRegistryPage userRole={currentUser.role} />}
+          {effectivePage === 'faculty' && (
+            <FacultyPage onNavigate={setCurrentPage} userRole={currentUser.role} currentUser={currentUser} />
+          )}
+          {effectivePage === 'courses' && (
+            <CoursesPage onNavigate={setCurrentPage} userRole={currentUser.role} />
+          )}
+          {effectivePage === 'records' && <AttendanceRecordsPage userRole={currentUser.role} />}
+          {effectivePage === 'defaulters' && <DefaultersPage />}
+          {effectivePage === 'settings' && (
+            <SettingsPage
+              onNavigate={setCurrentPage}
+              currentUser={currentUser}
+              userRole={currentUser.role}
+              onUserUpdate={handleUserUpdate}
+            />
+          )}
+          {effectivePage === 'student-portal' && (
             <StudentPortalPage
-              initialRoll={currentUser.role === 'student' ? (currentUser.email.split('@')[0] || '2103001') : '2103001'}
+              initialRoll={studentRoll}
+              userRole={currentUser.role}
+              currentUser={currentUser}
             />
           )}
         </main>

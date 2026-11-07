@@ -20,10 +20,15 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     full_name = Column(String(100), nullable=False)
     role = Column(String(20), default="faculty")  # admin, faculty, student
+    department = Column(String(50), default="Computer Science")
+    designation = Column(String(100), default="Assistant Professor")
+    phone = Column(String(20), nullable=True)
+    photo_url = Column(String(255), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     sessions = relationship("AttendanceSession", back_populates="faculty")
+    courses = relationship("Course", back_populates="faculty")
 
 
 class Student(Base):
@@ -37,6 +42,7 @@ class Student(Base):
     semester = Column(Integer, nullable=False, default=7)
     section = Column(String(10), nullable=False, default="A")
     email = Column(String(120), unique=True, nullable=True)
+    password_hash = Column(String(255), nullable=True)
     photo_url = Column(String(255), nullable=True)
     face_embedding = Column(Text, nullable=True)  # JSON serialized list of floats (512-d or 128-d)
     is_active = Column(Boolean, default=True)
@@ -56,8 +62,10 @@ class Course(Base):
     department = Column(String(50), default="Computer Science")
     semester = Column(Integer, default=7)
     total_classes = Column(Integer, default=0)
+    faculty_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
     # Relationships
+    faculty = relationship("User", back_populates="courses")
     sessions = relationship("AttendanceSession", back_populates="course")
 
 

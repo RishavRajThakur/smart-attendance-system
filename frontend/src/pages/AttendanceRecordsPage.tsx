@@ -2,7 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { api } from '../api';
 import type { AttendanceRecord, AttendanceSession } from '../types';
 
-export const AttendanceRecordsPage: React.FC = () => {
+interface AttendanceRecordsPageProps {
+  userRole?: string;
+}
+
+export const AttendanceRecordsPage: React.FC<AttendanceRecordsPageProps> = ({ userRole = 'faculty' }) => {
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [sessions, setSessions] = useState<AttendanceSession[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,12 +60,13 @@ export const AttendanceRecordsPage: React.FC = () => {
       <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-extrabold text-slate-900 font-heading">Attendance Audit Records</h1>
+            <h1 className="text-xl font-extrabold text-slate-900 font-heading">
+              {userRole === 'student' ? 'My Attendance History' : 'Attendance Records'}
+            </h1>
             <span className="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
-              {records.length} Total Logs
+              {records.length} Records
             </span>
           </div>
-
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
@@ -112,19 +117,21 @@ export const AttendanceRecordsPage: React.FC = () => {
                 <th className="px-6 py-4">Timestamp</th>
                 <th className="px-6 py-4">Verification Method</th>
                 <th className="px-6 py-4">Attendance Status</th>
-                <th className="px-6 py-4 text-right">Faculty Adjustment</th>
+                {userRole !== 'student' && (
+                  <th className="px-6 py-4 text-right">Faculty Adjustment</th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-12 text-slate-400 font-semibold">
+                  <td colSpan={userRole === 'student' ? 5 : 6} className="text-center py-12 text-slate-400 font-semibold">
                     Loading records...
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-12 text-slate-400 font-semibold">
+                  <td colSpan={userRole === 'student' ? 5 : 6} className="text-center py-12 text-slate-400 font-semibold">
                     No records found for this filter.
                   </td>
                 </tr>
@@ -161,14 +168,16 @@ export const AttendanceRecordsPage: React.FC = () => {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleStatusToggle(r)}
-                        className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition cursor-pointer"
-                      >
-                        Toggle Status
-                      </button>
-                    </td>
+                    {userRole !== 'student' && (
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => handleStatusToggle(r)}
+                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition cursor-pointer"
+                        >
+                          Toggle Status
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}

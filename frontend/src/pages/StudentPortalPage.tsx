@@ -1,18 +1,42 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../api';
+import type { User } from '../types';
+import { handleAvatarError, DEFAULT_AVATAR } from '../utils/avatar';
 
 interface StudentPortalPageProps {
   initialRoll?: string;
+  userRole?: string;
+  currentUser?: User | null;
 }
 
-export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({ initialRoll = '2103001' }) => {
+export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({
+  initialRoll = '2103001',
+  userRole = 'student',
+  currentUser
+}) => {
   const [roll, setRoll] = useState(initialRoll);
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const isStudentRole = userRole === 'student';
+
+  const [studentList, setStudentList] = useState<any[]>([]);
+
   useEffect(() => {
-    loadPortal(roll);
+    if (!isStudentRole) {
+      api.getStudents().then(setStudentList).catch(() => {});
+    }
+  }, [isStudentRole]);
+
+  useEffect(() => {
+    setRoll(initialRoll);
+  }, [initialRoll]);
+
+  useEffect(() => {
+    if (roll) {
+      loadPortal(roll);
+    }
   }, [roll]);
 
   const loadPortal = async (targetRoll: string) => {
@@ -22,25 +46,12 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({ initialRol
       const res = await api.getStudentPortalData(targetRoll);
       setData(res);
     } catch (err: any) {
-      // Fallback data for demo presentation if student records not in SQLite yet
-      setData({
-        student: {
-          full_name: 'Aman Kumar',
-          roll_number: targetRoll,
-          department: 'Computer Science',
-          semester: 7
-        },
-        total_classes: 24,
-        classes_attended: 22,
-        overall_percentage: 91.7,
-        is_eligible_for_exams: true,
-        subject_breakdown: [
-          { course_id: 1, course_code: 'CSE-302', course_name: 'Data Structures', attended: 8, total: 8, percentage: 100, is_shortage: false },
-          { course_id: 2, course_code: 'CSE-304', course_name: 'Database Management', attended: 6, total: 7, percentage: 85.7, is_shortage: false },
-          { course_id: 3, course_code: 'CSE-306', course_name: 'Computer Networks', attended: 5, total: 5, percentage: 100, is_shortage: false },
-          { course_id: 4, course_code: 'CSE-308', course_name: 'Software Engineering', attended: 3, total: 4, percentage: 75.0, is_shortage: false }
-        ]
-      });
+      if (err.message && err.message.includes('Access restricted')) {
+        setError('Access restricted: You are only authorized to view your own attendance data.');
+      } else {
+        setError(err.message || 'No attendance records available for this student.');
+      }
+      setData(null);
     } finally {
       setLoading(false);
     }
@@ -48,7 +59,7 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({ initialRol
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto select-none">
-      {/* Top Header with Student Switcher */}
+      {/* Top Header with Student Switcher (Only for Admin / Faculty evaluation) */}
       <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -57,31 +68,37 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({ initialRol
               Personal View
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Personal attendance records, subject shortages, and university exam eligibility status.
-          </p>
         </div>
 
-        {/* Quick Switcher for Viva Demonstration */}
-        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2">
-          <span className="text-[11px] text-blue-600 font-bold uppercase tracking-wider">Evaluate Student:</span>
-          <select
-            value={roll}
-            onChange={(e) => setRoll(e.target.value)}
-            className="bg-transparent text-xs text-slate-800 font-bold focus:outline-none cursor-pointer"
-          >
-            <option value="2103001">2103001 — Aman Kumar (91.7% Safe)</option>
-            <option value="2103002">2103002 — Sneha Patel (94.0% Safe)</option>
-            <option value="2103003">2103003 — Rohit Singh (88.5% Safe)</option>
-            <option value="2103004">2103004 — Priya Verma (92.0% Safe)</option>
-            <option value="2021CSE023">2021CSE023 — Ishaan Verma (50.0% Defaulter)</option>
-          </select>
-        </div>
+        {/* Quick Switcher only shown to Admin / Faculty evaluators; locked for Students */}
+        {!isStudentRole ? (
+          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2">
+            <span className="text-[11px] text-blue-600 font-bold uppercase tracking-wider">Select Student:</span>
+            <select
+              value={roll}
+              onChange={(e) => setRoll(e.target.value)}
+              className="bg-transparent text-xs text-slate-800 font-bold focus:outline-none cursor-pointer max-w-[260px] truncate"
+            >
+              {studentList.map((st) => (
+                <option key={st.id} value={st.roll_number}>
+                  {st.roll_number} — {st.full_name}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-3.5 py-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span className="text-xs font-mono font-bold text-emerald-800">
+              Roll No: {roll}
+            </span>
+          </div>
+        )}
       </div>
 
       {loading ? (
         <div className="text-center py-20 text-slate-400">
-          <p className="text-xs font-semibold">Loading student biometric record...</p>
+          <p className="text-xs font-semibold">Loading attendance data...</p>
         </div>
       ) : error && !data ? (
         <div className="p-8 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 text-center text-xs">
@@ -96,8 +113,13 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({ initialRol
               <div>
                 <div className="flex items-center gap-4">
                   <img
-                    src={roll === '2103002' ? '/assets/student_sneha.jpg' : roll === '2103003' ? '/assets/student_rohit.jpg' : roll === '2103004' ? '/assets/student_priya.jpg' : '/assets/student_aman.jpg'}
+                    src={
+                      (currentUser && (currentUser.roll_number === data.student.roll_number || currentUser.id === data.student.id) && currentUser.photo_url)
+                        ? currentUser.photo_url
+                        : (data.student.photo_url || DEFAULT_AVATAR)
+                    }
                     alt={data.student.full_name}
+                    onError={(e) => handleAvatarError(e, 'student')}
                     className="w-16 h-16 rounded-2xl object-cover border-2 border-blue-100 shadow-md"
                   />
                   <div>
@@ -111,10 +133,10 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({ initialRol
 
                 <div className="mt-6 pt-5 border-t border-slate-100 space-y-3 text-xs">
                   <div className="flex justify-between text-slate-600">
-                    <span>Biometric Face Enrolled:</span>
+                    <span>Face Registration:</span>
                     <span className="text-emerald-600 font-bold flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      ✓ Verified Active
+                      Active
                     </span>
                   </div>
                   <div className="flex justify-between text-slate-600">
@@ -154,7 +176,6 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({ initialRol
             <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between">
               <div>
                 <h2 className="text-sm font-bold text-slate-900 font-heading mb-1">Overall Attendance Benchmark</h2>
-                <p className="text-xs text-slate-500">Calculated aggregate across all 7th-Semester courses</p>
 
                 <div className="flex flex-col sm:flex-row items-center gap-10 py-6 justify-center">
                   {/* Circular Dial with Gradient */}
@@ -225,10 +246,6 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({ initialRol
                   </div>
                 </div>
               </div>
-
-              <div className="text-[11px] text-slate-400 pt-3 border-t border-slate-100">
-                Official Department Biometric Record • Updated in Real-Time
-              </div>
             </div>
           </div>
 
@@ -236,7 +253,6 @@ export const StudentPortalPage: React.FC<StudentPortalPageProps> = ({ initialRol
           <div className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm">
             <div className="p-5 border-b border-slate-100">
               <h2 className="text-sm font-bold text-slate-900 font-heading">Course-wise Attendance Breakdown</h2>
-              <p className="text-xs text-slate-500">Individual status for each 7th-Semester subject</p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-slate-700">

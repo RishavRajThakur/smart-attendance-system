@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { User } from '../types';
+import { getUserAvatar, handleAvatarError } from '../utils/avatar';
 
 interface NavbarProps {
   user: User | null;
@@ -22,16 +23,19 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout, onNavigate }) =>
     year: 'numeric'
   });
 
+  const isAdmin = user?.role === 'admin';
+  const isFaculty = user?.role === 'faculty';
   const isStudent = user?.role === 'student';
-  const avatarUrl = isStudent ? '/assets/student_aman.jpg' : '/assets/prof_manas.jpg';
-  const displayName = isStudent
-    ? (user?.full_name && !user.full_name.includes('Rishav') ? user.full_name : 'Aman Kumar')
-    : 'Prof. Manas Ranjan Biswal';
+
+  const avatarUrl = getUserAvatar(user, user?.role || 'faculty');
+
+  const displayName = user?.full_name || (isAdmin ? 'Dr. R. K. Mishra' : isFaculty ? 'Prof. Manas Ranjan Biswal' : 'Student');
+  const roleDisplay = isAdmin ? 'System Admin' : isFaculty ? 'Faculty Instructor' : 'Student';
 
   const notifications = [
     { id: 1, title: 'Attendance Marked', desc: '4 students marked via Face Recognition in CSE-302', time: '10 min ago' },
     { id: 2, title: 'Defaulter Alert', desc: '2 students below 75% attendance threshold', time: '1 hour ago' },
-    { id: 3, title: 'System Engine', desc: 'OpenCV & Deep Metric Biometric Cache updated', time: '2 hours ago' },
+    { id: 3, title: 'Biometrics Active', desc: 'Face recognition database synchronized', time: '2 hours ago' },
   ];
 
   return (
@@ -50,10 +54,10 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout, onNavigate }) =>
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
-                onNavigate('students');
+                onNavigate(isStudent ? 'records' : 'students');
               }
             }}
-            placeholder="Search students, faculty, or records..."
+            placeholder={isStudent ? "Search attendance records..." : "Search students, faculty, or records..."}
             className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#f1f5f9] text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white border border-transparent focus:border-slate-200 transition"
           />
         </div>
@@ -109,11 +113,16 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout, onNavigate }) =>
         <div className="relative">
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center gap-2 cursor-pointer focus:outline-none"
+            className="flex items-center gap-2.5 cursor-pointer focus:outline-none p-1 rounded-xl hover:bg-slate-50 transition"
           >
+            <div className="hidden md:flex flex-col text-right">
+              <span className="text-xs font-bold text-slate-800 leading-tight">{displayName}</span>
+              <span className="text-[10px] text-blue-600 font-bold leading-tight">{roleDisplay}</span>
+            </div>
             <img
               src={avatarUrl}
               alt={displayName}
+              onError={(e) => handleAvatarError(e, user?.role || 'faculty')}
               className="w-9 h-9 rounded-full object-cover border-2 border-slate-200"
             />
             <svg className="w-3.5 h-3.5 text-slate-500 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -140,7 +149,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout, onNavigate }) =>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span>System Settings</span>
+                <span>{isAdmin ? 'System Settings' : isFaculty ? 'Faculty Profile' : 'My Student Profile'}</span>
               </button>
 
               <button

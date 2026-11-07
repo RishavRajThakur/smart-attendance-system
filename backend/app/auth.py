@@ -92,18 +92,61 @@ def decode_access_token(token: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-def get_current_user(token: Optional[str] = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> Optional[User]:
-    """Dependency to retrieve the currently authenticated user."""
+from .models import User, Student
+
+
+def get_current_user(token: Optional[str] = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> Optional[Any]:
+    """Dependency to retrieve the currently authenticated user (Admin, Faculty, or Student)."""
     if not token:
         return None
     payload = decode_access_token(token)
     if not payload or "sub" not in payload:
         return None
-    user = db.query(User).filter(User.email == payload["sub"]).first()
+
+    role = payload.get("role")
+    user_id = payload.get("id")
+
+    if role == "student":
+        # Check student table
+        student = None
+        if user_id:
+            student = db.query(Student).filter(Student.id == user_id).first()
+        if not student:
+            student = db.query(Student).filter(
+                (Student.roll_number == payload["sub"]) | (Student.email == payload["sub"])
+            ).first()
+        if student:
+            # Attach virtual role & email attributes for uniform access
+            student.role = "student"
+            return student
+        return None
+
+    # Admin or Faculty
+    user = None
+    if user_id:
+        user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        user = db.query(User).filter(User.email == payload["sub"]).first()
     return user
 
 
-def require_faculty_or_admin(current_user: Optional[User] = Depends(get_current_user)) -> User:
+def require_admin(current_user: Optional[Any] = Depends(get_current_user)) -> User:
+    """Ensure user is an administrator."""
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if getattr(current_user, "role", None) != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Administrator authority required for this operation"
+        )
+    return current_user
+
+
+def require_faculty_or_admin(current_user: Optional[Any] = Depends(get_current_user)) -> Any:
     """Ensure user is faculty or admin for privileged endpoints."""
     if not current_user:
         raise HTTPException(
@@ -111,9 +154,21 @@ def require_faculty_or_admin(current_user: Optional[User] = Depends(get_current_
             detail="Authentication required",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    if current_user.role not in ["admin", "faculty"]:
+    if getattr(current_user, "role", None) not in ["admin", "faculty"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Faculty or Admin privileges required"
         )
     return current_user
+
+
+def require_authenticated(current_user: Optional[Any] = Depends(get_current_user)) -> Any:
+    """Ensure request is from an authenticated user (Admin, Faculty, or Student)."""
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return current_user
+

@@ -1,6 +1,7 @@
 import type {
   User, Student, AttendanceSession, AttendanceRecord,
-  AnalyticsOverview, DefaulterStudent, RecognizedFace
+  AnalyticsOverview, DefaulterStudent, RecognizedFace,
+  FacultyMember, Course
 } from './types';
 
 const API_BASE = '/api';
@@ -15,20 +16,21 @@ function getAuthHeaders(): HeadersInit {
 
 export const api = {
   // --- Auth ---
-  async login(email: string, password: string): Promise<{ access_token: string; role: string; full_name: string; email: string }> {
+  async login(
+    email: string,
+    password: string,
+    role?: string
+  ): Promise<{ access_token: string; role: 'admin' | 'faculty' | 'student'; full_name: string; email: string; roll_number?: string; department?: string; designation?: string; photo_url?: string }> {
     const res = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password, role })
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: 'Authentication failed' }));
       throw new Error(err.detail || 'Authentication failed');
     }
     const data = await res.json();
-    if (data.role !== 'student' || !data.full_name || data.full_name.includes('Rishav')) {
-      data.full_name = 'Prof. Manas Ranjan Biswal';
-    }
     localStorage.setItem('token', data.access_token);
     localStorage.setItem('user', JSON.stringify(data));
     return data;
@@ -38,14 +40,7 @@ export const api = {
     const userStr = localStorage.getItem('user');
     if (!userStr) return null;
     try {
-      const user = JSON.parse(userStr);
-      if (user) {
-        if (user.role !== 'student' || !user.full_name || user.full_name.includes('Rishav')) {
-          user.full_name = 'Prof. Manas Ranjan Biswal';
-          localStorage.setItem('user', JSON.stringify(user));
-        }
-      }
-      return user;
+      return JSON.parse(userStr);
     } catch {
       return null;
     }
@@ -56,12 +51,176 @@ export const api = {
     localStorage.removeItem('user');
   },
 
+  async uploadProfilePhoto(photo_base64: string): Promise<{ success: boolean; photo_url: string }> {
+    const res = await fetch(`${API_BASE}/auth/profile-photo`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ photo_base64 })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Failed to upload photo' }));
+      throw new Error(err.detail || 'Failed to upload photo');
+    }
+    return res.json();
+  },
+
+  async removeProfilePhoto(): Promise<{ success: boolean; photo_url: null }> {
+    const res = await fetch(`${API_BASE}/auth/profile-photo`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Failed to remove photo' }));
+      throw new Error(err.detail || 'Failed to remove photo');
+    }
+    return res.json();
+  },
+
+  // --- Faculty Management ---
+  async getFaculty(): Promise<FacultyMember[]> {
+    const res = await fetch(`${API_BASE}/faculty`, { headers: getAuthHeaders() });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Failed to load faculty' }));
+      throw new Error(err.detail || 'Failed to load faculty');
+    }
+    return res.json();
+  },
+
+  async getMyFacultyProfile(): Promise<FacultyMember> {
+    const res = await fetch(`${API_BASE}/faculty/me`, { headers: getAuthHeaders() });
+    if (!res.ok) throw new Error('Failed to load faculty profile');
+    return res.json();
+  },
+
+  async createFaculty(data: {
+    email: string;
+    password: string;
+    full_name: string;
+    department?: string;
+    designation?: string;
+    phone?: string;
+    course_ids?: number[];
+  }): Promise<FacultyMember> {
+    const res = await fetch(`${API_BASE}/faculty`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Failed to create faculty' }));
+      throw new Error(err.detail || 'Failed to create faculty');
+    }
+    return res.json();
+  },
+
+  async updateFaculty(id: number, data: {
+    email?: string;
+    full_name?: string;
+    department?: string;
+    designation?: string;
+    phone?: string;
+    course_ids?: number[];
+  }): Promise<FacultyMember> {
+    const res = await fetch(`${API_BASE}/faculty/${id}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Failed to update faculty' }));
+      throw new Error(err.detail || 'Failed to update faculty');
+    }
+    return res.json();
+  },
+
+  async resetFacultyPassword(id: number, new_password: string): Promise<any> {
+    const res = await fetch(`${API_BASE}/faculty/${id}/reset-password`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ new_password })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Failed to reset password' }));
+      throw new Error(err.detail || 'Failed to reset password');
+    }
+    return res.json();
+  },
+
+  async deleteFaculty(id: number): Promise<any> {
+    const res = await fetch(`${API_BASE}/faculty/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Failed to delete faculty' }));
+      throw new Error(err.detail || 'Failed to delete faculty');
+    }
+    return res.json();
+  },
+
+  // --- Courses / Subjects ---
+  async getCourses(department?: string, semester?: number): Promise<Course[]> {
+    const params = new URLSearchParams();
+    if (department) params.append('department', department);
+    if (semester) params.append('semester', semester.toString());
+    const res = await fetch(`${API_BASE}/courses?${params.toString()}`, { headers: getAuthHeaders() });
+    if (!res.ok) throw new Error('Failed to load courses');
+    return res.json();
+  },
+
+  async createCourse(data: {
+    course_code: string;
+    course_name: string;
+    department?: string;
+    semester?: number;
+    faculty_id?: number;
+  }): Promise<Course> {
+    const res = await fetch(`${API_BASE}/courses`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Failed to create course' }));
+      throw new Error(err.detail || 'Failed to create course');
+    }
+    return res.json();
+  },
+
+  async updateCourse(id: number, data: {
+    course_name?: string;
+    department?: string;
+    semester?: number;
+    faculty_id?: number | null;
+  }): Promise<Course> {
+    const res = await fetch(`${API_BASE}/courses/${id}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Failed to update course' }));
+      throw new Error(err.detail || 'Failed to update course');
+    }
+    return res.json();
+  },
+
+  async deleteCourse(id: number): Promise<any> {
+    const res = await fetch(`${API_BASE}/courses/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    if (!res.ok) throw new Error('Failed to delete course');
+    return res.json();
+  },
+
   // --- Students ---
-  async getStudents(search?: string, department?: string, semester?: number): Promise<Student[]> {
+  async getStudents(search?: string, department?: string, semester?: number, section?: string): Promise<Student[]> {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
     if (department) params.append('department', department);
     if (semester) params.append('semester', semester.toString());
+    if (section) params.append('section', section);
     const res = await fetch(`${API_BASE}/students?${params.toString()}`, { headers: getAuthHeaders() });
     if (!res.ok) throw new Error('Failed to load students');
     return res.json();
@@ -84,6 +243,19 @@ export const api = {
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: 'Registration failed' }));
       throw new Error(err.detail || 'Registration failed');
+    }
+    return res.json();
+  },
+
+  async enrollStudentFace(id: number, photo_base64: string): Promise<Student> {
+    const res = await fetch(`${API_BASE}/students/${id}/face`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ photo_base64 })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Face enrollment failed' }));
+      throw new Error(err.detail || 'Face enrollment failed');
     }
     return res.json();
   },
@@ -137,10 +309,11 @@ export const api = {
   },
 
   // --- Attendance Records ---
-  async getRecords(filters?: { session_id?: number; date_str?: string }): Promise<AttendanceRecord[]> {
+  async getRecords(filters?: { session_id?: number; date_str?: string; student_id?: number }): Promise<AttendanceRecord[]> {
     const params = new URLSearchParams();
     if (filters?.session_id) params.append('session_id', filters.session_id.toString());
     if (filters?.date_str) params.append('date_str', filters.date_str);
+    if (filters?.student_id) params.append('student_id', filters.student_id.toString());
     const res = await fetch(`${API_BASE}/attendance/records?${params.toString()}`, { headers: getAuthHeaders() });
     if (!res.ok) throw new Error('Failed to load records');
     return res.json();
@@ -162,7 +335,12 @@ export const api = {
   },
 
   getExportCsvUrl(session_id?: number): string {
-    return `${API_BASE}/attendance/export-csv${session_id ? `?session_id=${session_id}` : ''}`;
+    const token = localStorage.getItem('token');
+    const params = new URLSearchParams();
+    if (session_id) params.append('session_id', session_id.toString());
+    if (token) params.append('token', token);
+    const query = params.toString();
+    return `${API_BASE}/attendance/export-csv${query ? `?${query}` : ''}`;
   },
 
   // --- Analytics ---

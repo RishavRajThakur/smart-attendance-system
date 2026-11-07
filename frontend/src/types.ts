@@ -3,7 +3,38 @@ export interface User {
   email: string;
   full_name: string;
   role: 'admin' | 'faculty' | 'student';
+  department?: string;
+  designation?: string;
+  phone?: string;
+  roll_number?: string;
+  photo_url?: string;
   created_at?: string;
+}
+
+export interface FacultyMember {
+  id: number;
+  email: string;
+  full_name: string;
+  role: string;
+  department: string;
+  designation: string;
+  phone?: string;
+  photo_url?: string;
+  assigned_courses: string[];
+  course_ids: number[];
+  total_sessions: number;
+  created_at: string;
+}
+
+export interface Course {
+  id: number;
+  course_code: string;
+  course_name: string;
+  department: string;
+  semester: number;
+  total_classes: number;
+  faculty_id?: number | null;
+  faculty_name?: string;
 }
 
 export interface Student {
@@ -74,7 +105,11 @@ export interface DefaulterStudent {
 export interface AnalyticsOverview {
   total_students: number;
   total_courses: number;
+  total_faculty?: number;
   active_sessions_today: number;
+  present_today?: number;
+  absent_today?: number;
+  not_marked_today?: number;
   overall_attendance_rate: number;
   defaulters_count: number;
   weekly_trends: Array<{

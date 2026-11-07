@@ -6,15 +6,17 @@ Handles student profiles, enrollment, biometric face registration, and embedding
 import os
 import json
 import base64
-from typing import List, Optional
+from typing import List, Optional, Any
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form, status
 from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models import Student, AttendanceRecord
-from ..schemas import StudentCreate, StudentOut
+from ..schemas import StudentCreate, StudentOut, ProfilePhotoRequest
 from ..services.face_engine import (
     decode_base64_image, detect_faces, extract_face_embedding, embedding_cache
 )
+
+from ..auth import get_current_user, require_authenticated, require_faculty_or_admin, require_admin
 
 router = APIRouter(prefix="/api/students", tags=["Students"])
 
@@ -27,18 +29,31 @@ def list_students(
     search: Optional[str] = None,
     department: Optional[str] = None,
     semester: Optional[int] = None,
+    section: Optional[str] = None,
+    current_user: Optional[Any] = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """List students with optional search and filters."""
+    """
+    List students with optional search and filters.
+    - Admin: All students.
+    - Faculty: Filterable by department/semester/section.
+    - Student: Strictly returns ONLY their own record to protect privacy.
+    """
     query = db.query(Student).filter(Student.is_active == True)
 
-    if search:
-        s = f"%{search.strip()}%"
-        query = query.filter((Student.full_name.ilike(s)) | (Student.roll_number.ilike(s)))
-    if department:
-        query = query.filter(Student.department == department)
-    if semester:
-        query = query.filter(Student.semester == semester)
+    # Privacy constraint: Student can only view their own record
+    if current_user and getattr(current_user, "role", None) == "student":
+        query = query.filter(Student.id == current_user.id)
+    else:
+        if search:
+            s = f"%{search.strip()}%"
+            query = query.filter((Student.full_name.ilike(s)) | (Student.roll_number.ilike(s)))
+        if department:
+            query = query.filter(Student.department == department)
+        if semester:
+            query = query.filter(Student.semester == semester)
+        if section:
+            query = query.filter(Student.section == section)
 
     students = query.order_by(Student.roll_number.asc()).all()
 
@@ -63,8 +78,21 @@ def list_students(
 
 
 @router.get("/{student_id}")
-def get_student_details(student_id: int, db: Session = Depends(get_db)):
-    """Retrieve detailed student profile including personal attendance statistics."""
+def get_student_details(
+    student_id: int,
+    current_user: Optional[Any] = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Retrieve detailed student profile including personal attendance statistics.
+    Privacy guard: A student cannot view another student's details.
+    """
+    if current_user and getattr(current_user, "role", None) == "student" and current_user.id != student_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access restricted: You can only view your own student attendance details."
+        )
+
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
@@ -72,7 +100,7 @@ def get_student_details(student_id: int, db: Session = Depends(get_db)):
     total_records = db.query(AttendanceRecord).filter(AttendanceRecord.student_id == student_id).count()
     present_records = db.query(AttendanceRecord).filter(
         AttendanceRecord.student_id == student_id,
-        AttendanceRecord.status == "PRESENT"
+        AttendanceRecord.status.in_(["PRESENT", "LATE"])
     ).count()
 
     percentage = round((present_records / total_records * 100), 1) if total_records > 0 else 0.0
@@ -96,10 +124,15 @@ def get_student_details(student_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("", response_model=StudentOut, status_code=status.HTTP_201_CREATED)
-def register_student(payload: StudentCreate, db: Session = Depends(get_db)):
+def register_student(
+    payload: StudentCreate,
+    current_user: Any = Depends(require_faculty_or_admin),
+    db: Session = Depends(get_db)
+):
     """
     Register a new student with biometric facial features.
     Accepts student details and optional webcam capture photo to extract embeddings.
+    Authorized for Faculty and Administrators.
     """
     # Check duplicate roll number
     existing = db.query(Student).filter(Student.roll_number == payload.roll_number.strip().upper()).first()
@@ -175,9 +208,78 @@ def register_student(payload: StudentCreate, db: Session = Depends(get_db)):
     )
 
 
+@router.post("/{student_id}/face", response_model=StudentOut)
+def enroll_student_face(
+    student_id: int,
+    payload: ProfilePhotoRequest,
+    current_user: Any = Depends(require_faculty_or_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Enroll or update biometric face embedding for an existing student.
+    Useful when a student was previously registered without a face (Pending status).
+    """
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+
+    if not payload.photo_base64:
+        raise HTTPException(status_code=400, detail="No photo data provided.")
+
+    try:
+        bgr_img = decode_base64_image(payload.photo_base64)
+        faces = detect_faces(bgr_img)
+        if len(faces) == 0:
+            raise HTTPException(status_code=400, detail="No face detected in the photo. Please ensure face is centered with adequate lighting.")
+        if len(faces) > 1:
+            raise HTTPException(status_code=400, detail="Multiple faces detected. Ensure only one person is in front of the camera.")
+
+        embedding_vector = extract_face_embedding(bgr_img, faces[0])
+
+        filename = f"student_{student.roll_number.strip().upper()}.jpg"
+        filepath = os.path.join(UPLOAD_DIR, filename)
+        x, y, w, h = faces[0]
+        pad = int(0.2 * min(w, h))
+        h_img, w_img = bgr_img.shape[:2]
+        crop = bgr_img[max(0, y-pad):min(h_img, y+h+pad), max(0, x-pad):min(w_img, x+w+pad)]
+        import cv2
+        cv2.imwrite(filepath, crop if crop.size > 0 else bgr_img)
+        
+        student.photo_url = f"/static/uploads/{filename}"
+        student.face_embedding = json.dumps(embedding_vector)
+        db.commit()
+        db.refresh(student)
+
+        # Warm up biometric in-memory cache
+        all_students = db.query(Student).filter(Student.is_active == True).all()
+        embedding_cache.refresh(all_students)
+
+        return StudentOut(
+            id=student.id,
+            roll_number=student.roll_number,
+            full_name=student.full_name,
+            department=student.department,
+            semester=student.semester,
+            section=student.section,
+            email=student.email,
+            photo_url=student.photo_url,
+            has_face_enrolled=bool(student.face_embedding),
+            is_active=student.is_active,
+            created_at=student.created_at
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Image processing failed: {str(e)}")
+
+
 @router.delete("/{student_id}")
-def delete_student(student_id: int, db: Session = Depends(get_db)):
-    """Deactivate or remove student."""
+def delete_student(
+    student_id: int,
+    current_user: Any = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Admin-only: Deactivate or remove student from the institutional registry."""
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")

@@ -30,60 +30,96 @@ def seed_database():
 
     try:
         # 1. Seed Faculty & Admin Users
-        if db.query(User).count() == 0:
-            print("[Seed] Creating demo users...")
-            demo_users = [
-                User(
-                    email="faculty@college.edu",
-                    password_hash=hash_password("faculty123"),
-                    full_name="Prof. Manas Ranjan Biswal",
-                    role="faculty"
-                ),
-                User(
-                    email="admin@college.edu",
-                    password_hash=hash_password("admin123"),
-                    full_name="Dr. R. K. Mishra (HOD)",
-                    role="admin"
-                )
-            ]
-            db.add_all(demo_users)
-            db.commit()
+        admin_user = db.query(User).filter(User.email == "admin@college.edu").first()
+        if not admin_user:
+            admin_user = User(
+                email="admin@college.edu",
+                password_hash=hash_password("admin123"),
+                full_name="Dr. R. K. Mishra (HOD)",
+                role="admin",
+                department="Computer Science & Engineering",
+                designation="Head of Department & System Administrator",
+                phone="+91 98765 43210"
+            )
+            db.add(admin_user)
 
-        # 2. Seed Courses
-        if db.query(Course).count() == 0:
-            print("[Seed] Creating 7th semester courses...")
-            courses = [
-                Course(course_code="CS701", course_name="Deep Learning & Neural Networks", department="Computer Science", semester=7, total_classes=24),
-                Course(course_code="CS702", course_name="Computer Vision & Image Processing", department="Computer Science", semester=7, total_classes=22),
-                Course(course_code="CS703", course_name="Cloud Computing & Distributed Systems", department="Computer Science", semester=7, total_classes=20),
-                Course(course_code="CS704", course_name="Cybersecurity & Cryptography", department="Computer Science", semester=7, total_classes=18),
-            ]
-            db.add_all(courses)
-            db.commit()
+        fac1 = db.query(User).filter(User.email == "faculty@college.edu").first()
+        if not fac1:
+            fac1 = User(
+                email="faculty@college.edu",
+                password_hash=hash_password("faculty123"),
+                full_name="Prof. Manas Ranjan Biswal",
+                role="faculty",
+                department="Computer Science & Engineering",
+                designation="Assistant Professor & Lab Lead",
+                phone="+91 98111 22334"
+            )
+            db.add(fac1)
+        else:
+            fac1.full_name = "Prof. Manas Ranjan Biswal"
+            fac1.department = "Computer Science & Engineering"
+            fac1.designation = "Assistant Professor & Lab Lead"
+
+        fac2 = db.query(User).filter(User.email == "ananya.sen@college.edu").first()
+        if not fac2:
+            fac2 = User(
+                email="ananya.sen@college.edu",
+                password_hash=hash_password("faculty123"),
+                full_name="Prof. Ananya Sen",
+                role="faculty",
+                department="Computer Science & Engineering",
+                designation="Associate Professor",
+                phone="+91 98222 33445"
+            )
+            db.add(fac2)
+
+        db.commit()
+
+        # Re-fetch users to get IDs
+        fac1 = db.query(User).filter(User.email == "faculty@college.edu").first()
+        fac2 = db.query(User).filter(User.email == "ananya.sen@college.edu").first()
+
+        # 2. Seed / Update Courses with Faculty Assignment
+        courses_data = [
+            ("CS701", "Deep Learning & Neural Networks", 24, fac1.id if fac1 else None),
+            ("CS702", "Computer Vision & Image Processing", 22, fac1.id if fac1 else None),
+            ("CS703", "Cloud Computing & Distributed Systems", 20, fac2.id if fac2 else None),
+            ("CS704", "Cybersecurity & Cryptography", 18, fac2.id if fac2 else None),
+        ]
+
+        for code, name, total_cls, f_id in courses_data:
+            c = db.query(Course).filter(Course.course_code == code).first()
+            if not c:
+                c = Course(course_code=code, course_name=name, department="Computer Science", semester=7, total_classes=total_cls, faculty_id=f_id)
+                db.add(c)
+            else:
+                c.faculty_id = f_id
+        db.commit()
 
         # 3. Seed Students
-        if db.query(Student).count() == 0:
-            print("[Seed] Creating student roster with biometric embeddings...")
-            student_roster = [
-                ("2021CSE001", "Aarav Sharma", "A"),
-                ("2021CSE014", "Diya Mukherjee", "A"),
-                ("2021CSE023", "Ishaan Verma", "A"),
-                ("2021CSE042", "Rahul Sharma", "A"),
-                ("2021CSE055", "Priya Nair", "A"),
-                ("2021CSE068", "Rohan Gupta", "B"),
-                ("2021CSE079", "Sneha Roy", "B"),
-                ("2021CSE091", "Tanmay Kulkarni", "B"),
-                ("2021CSE104", "Ananya Ghosh", "B"),
-                ("2021CSE118", "Vikramaditya Rao", "B"),
-                ("2021CSE125", "Meera Pillai", "A"),
-                ("2021CSE133", "Kabir Bedi", "B"),
-                ("2021CSE149", "Ritu Agarwal", "A"),
-                ("2021CSE156", "Siddharth Jain", "B"),
-                ("2021CSE162", "Zara Sheikh", "A")
-            ]
+        student_roster = [
+            ("2103001", "Aman Kumar", "A", "/assets/student_aman.jpg"),
+            ("2021CSE042", "Rahul Sharma", "A", "/assets/student_rohit.jpg"),
+            ("2021CSE001", "Aarav Sharma", "A", None),
+            ("2021CSE014", "Diya Mukherjee", "A", "/assets/student_priya.jpg"),
+            ("2021CSE023", "Ishaan Verma", "A", None),
+            ("2021CSE055", "Priya Nair", "A", "/assets/student_sneha.jpg"),
+            ("2021CSE068", "Rohan Gupta", "B", None),
+            ("2021CSE079", "Sneha Roy", "B", None),
+            ("2021CSE091", "Tanmay Kulkarni", "B", None),
+            ("2021CSE104", "Ananya Ghosh", "B", None),
+            ("2021CSE118", "Vikramaditya Rao", "B", None),
+            ("2021CSE125", "Meera Pillai", "A", None),
+            ("2021CSE133", "Kabir Bedi", "B", None),
+            ("2021CSE149", "Ritu Agarwal", "A", None),
+            ("2021CSE156", "Siddharth Jain", "B", None),
+            ("2021CSE162", "Zara Sheikh", "A", None),
+            ("23053434", "Rishav Raj Thakur", "A", None)
+        ]
 
-            created_students = []
-            for idx, (roll, name, sec) in enumerate(student_roster, start=1):
+        for idx, (roll, name, sec, photo) in enumerate(student_roster, start=1):
+            existing = db.query(Student).filter(Student.roll_number == roll).first()
+            if not existing:
                 emb = generate_synthetic_embedding(seed_val=1000 + idx, dim=128)
                 st = Student(
                     roll_number=roll,
@@ -92,13 +128,18 @@ def seed_database():
                     semester=7,
                     section=sec,
                     email=f"{roll.lower()}@student.college.edu",
-                    photo_url=None,
+                    photo_url=photo,
                     face_embedding=json.dumps(emb),
                     is_active=True
                 )
-                created_students.append(st)
                 db.add(st)
-            db.commit()
+            else:
+                if photo and not existing.photo_url:
+                    existing.photo_url = photo
+                if not existing.face_embedding:
+                    emb = generate_synthetic_embedding(seed_val=1000 + idx, dim=128)
+                    existing.face_embedding = json.dumps(emb)
+        db.commit()
 
         # 4. Seed Past Attendance Sessions & Records
         if db.query(AttendanceSession).count() == 0:
@@ -116,7 +157,7 @@ def seed_database():
                 c = courses[offset % len(courses)]
                 session = AttendanceSession(
                     course_id=c.id,
-                    faculty_id=faculty.id if faculty else None,
+                    faculty_id=c.faculty_id or (fac1.id if fac1 else None),
                     session_title=f"{c.course_name} — Lecture {25 - offset}",
                     session_date=s_date,
                     start_time="10:00 AM",
@@ -182,6 +223,17 @@ def seed_database():
                 )
                 db.add(rec)
 
+            db.commit()
+
+        # Ensure existing sessions have faculty_id linked
+        null_sessions = db.query(AttendanceSession).filter(AttendanceSession.faculty_id == None).all()
+        if null_sessions:
+            fac1 = db.query(User).filter(User.email == "faculty@college.edu").first()
+            for sess in null_sessions:
+                if sess.course and sess.course.faculty_id:
+                    sess.faculty_id = sess.course.faculty_id
+                elif fac1:
+                    sess.faculty_id = fac1.id
             db.commit()
 
         # Refresh in-memory cache
