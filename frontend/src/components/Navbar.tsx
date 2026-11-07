@@ -58,7 +58,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onNavigate }) => {
   return (
     <header className="h-[70px] bg-white border-b border-slate-100 sticky top-0 z-30 px-6 sm:px-8 flex items-center justify-between select-none">
       {/* Search Input Bar with clean border and Ctrl+K badge */}
-      <div className="flex-1 max-w-md">
+      <div className="flex-1 max-w-2xl md:max-w-3xl lg:max-w-4xl mr-4 sm:mr-6">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
