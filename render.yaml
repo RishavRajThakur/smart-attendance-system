@@ -10,3 +10,4 @@ services:
         value: 8000
       - key: AUTO_SEED_DEMO
         value: "0"
+
