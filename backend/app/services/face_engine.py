@@ -26,19 +26,19 @@ def get_face_cascade():
     """Load OpenCV Haar Cascade for fast, reliable face detection."""
     global _face_cascade
     if _face_cascade is None and cv2 is not None:
-        bundled_path = os.path.join(os.path.dirname(__file__), "haarcascade_frontalface_default.xml")
+        bundled_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "haarcascade_frontalface_default.xml"))
         cv2_data_dir = getattr(cv2, "data", None) and cv2.data.haarcascades or ""
         candidate_paths = [
             bundled_path,
-            os.path.join(cv2_data_dir, "haarcascade_frontalface_default.xml"),
+            os.path.abspath(os.path.join(cv2_data_dir, "haarcascade_frontalface_default.xml")),
             "/usr/share/opencv4/haarcascades/haarcascade_frontalface_default.xml",
             "/usr/share/opencv/haarcascades/haarcascade_frontalface_default.xml",
         ]
         for p in candidate_paths:
             if p and os.path.exists(p):
                 try:
-                    casc = cv2.CascadeClassifier(p)
-                    if not casc.empty():
+                    casc = cv2.CascadeClassifier()
+                    if casc.load(p) and not casc.empty():
                         _face_cascade = casc
                         print(f"[FaceEngine] Loaded face cascade from: {p}")
                         break

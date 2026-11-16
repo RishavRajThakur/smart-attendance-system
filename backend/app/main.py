@@ -38,12 +38,17 @@ app.add_middleware(
 @app.get("/api/health")
 def api_health():
     from .services.face_engine import get_face_cascade, cv2
+    import os
     casc = get_face_cascade()
+    bundled_path = os.path.join(os.path.dirname(__file__), "services", "haarcascade_frontalface_default.xml")
     return {
         "status": "healthy",
         "cv2": cv2 is not None,
         "cascade_loaded": casc is not None and not casc.empty(),
-        "version": "v2.1-bundled-biometrics"
+        "bundled_path": bundled_path,
+        "bundled_exists": os.path.exists(bundled_path),
+        "bundled_size": os.path.getsize(bundled_path) if os.path.exists(bundled_path) else 0,
+        "cv2_data": getattr(cv2, "data", None) and getattr(cv2.data, "haarcascades", None)
     }
 
 # Ensure static directories exist
