@@ -149,7 +149,7 @@ def recognize_and_mark_attendance(payload: FrameRecognitionRequest, db: Session 
         students = db.query(Student).filter(Student.is_active == True).all()
         embedding_cache.refresh(students)
 
-    detected_boxes = detect_faces(bgr_image)
+    detected_boxes = detect_faces(bgr_image, is_kiosk_stream=True)
     recognized_faces: List[RecognizedFace] = []
 
     for box in detected_boxes:

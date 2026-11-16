@@ -4,6 +4,7 @@ Handles Face Detection, Liveness Check (Blur/Quality), Deep Metric Embedding Ext
 and Fast Vectorized Similarity Matching.
 """
 
+import os
 import io
 import json
 import base64
@@ -25,12 +26,26 @@ def get_face_cascade():
     """Load OpenCV Haar Cascade for fast, reliable face detection."""
     global _face_cascade
     if _face_cascade is None and cv2 is not None:
-        try:
-            cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-            _face_cascade = cv2.CascadeClassifier(cascade_path)
-        except Exception as e:
-            print(f"[FaceEngine] Cascade error: {e}")
-            _face_cascade = None
+        bundled_path = os.path.join(os.path.dirname(__file__), "haarcascade_frontalface_default.xml")
+        cv2_data_dir = getattr(cv2, "data", None) and cv2.data.haarcascades or ""
+        candidate_paths = [
+            bundled_path,
+            os.path.join(cv2_data_dir, "haarcascade_frontalface_default.xml"),
+            "/usr/share/opencv4/haarcascades/haarcascade_frontalface_default.xml",
+            "/usr/share/opencv/haarcascades/haarcascade_frontalface_default.xml",
+        ]
+        for p in candidate_paths:
+            if p and os.path.exists(p):
+                try:
+                    casc = cv2.CascadeClassifier(p)
+                    if not casc.empty():
+                        _face_cascade = casc
+                        print(f"[FaceEngine] Loaded face cascade from: {p}")
+                        break
+                except Exception as ex:
+                    print(f"[FaceEngine] Could not load from {p}: {ex}")
+        if _face_cascade is None:
+            print("[FaceEngine Warning] Face cascade could not be loaded from candidate paths.")
     return _face_cascade
 
 
@@ -70,10 +85,11 @@ def check_image_quality(gray_img: np.ndarray) -> Tuple[bool, float]:
     return (var >= 15.0, var)
 
 
-def detect_faces(bgr_image: np.ndarray) -> List[Tuple[int, int, int, int]]:
+def detect_faces(bgr_image: np.ndarray, is_kiosk_stream: bool = False) -> List[Tuple[int, int, int, int]]:
     """
     Detect faces in image using robust two-stage Haar cascade.
-    Returns list of bounding boxes: [(x, y, w, h), ...] or [] if no faces found.
+    For live kiosk streams: returns [] if no faces found to avoid false positives in empty rooms.
+    For student enrollment photos: provides centered fallback candidate region if tightly cropped.
     """
     if cv2 is not None:
         try:
@@ -82,13 +98,13 @@ def detect_faces(bgr_image: np.ndarray) -> List[Tuple[int, int, int, int]]:
             else:
                 gray = bgr_image
             cascade = get_face_cascade()
-            if cascade is not None:
+            if cascade is not None and not cascade.empty():
                 # 1. Primary detection pass
                 faces = cascade.detectMultiScale(
                     gray,
-                    scaleFactor=1.12,
-                    minNeighbors=4,
-                    minSize=(40, 40),
+                    scaleFactor=1.10,
+                    minNeighbors=3,
+                    minSize=(30, 30),
                     flags=cv2.CASCADE_SCALE_IMAGE
                 )
                 if len(faces) > 0:
@@ -97,9 +113,9 @@ def detect_faces(bgr_image: np.ndarray) -> List[Tuple[int, int, int, int]]:
                 # 2. Relaxed secondary pass for dim light or angled faces
                 faces = cascade.detectMultiScale(
                     gray,
-                    scaleFactor=1.08,
-                    minNeighbors=2,
-                    minSize=(25, 25),
+                    scaleFactor=1.05,
+                    minNeighbors=1,
+                    minSize=(20, 20),
                     flags=cv2.CASCADE_SCALE_IMAGE
                 )
                 if len(faces) > 0:
@@ -107,7 +123,13 @@ def detect_faces(bgr_image: np.ndarray) -> List[Tuple[int, int, int, int]]:
         except Exception as e:
             print(f"[FaceEngine] Face detection error: {e}")
 
-    return []
+    # For live camera kiosk, return empty list if no face in frame
+    if is_kiosk_stream:
+        return []
+
+    # For student enrollment photo: fallback to center 80% region
+    h, w = bgr_image.shape[:2]
+    return [(int(w * 0.1), int(h * 0.1), int(w * 0.8), int(h * 0.8))]
 
 
 def extract_face_embedding(bgr_image: np.ndarray, box: Optional[Tuple[int, int, int, int]] = None) -> List[float]:
