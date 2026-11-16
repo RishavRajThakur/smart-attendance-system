@@ -39,25 +39,13 @@ app.add_middleware(
 def api_health():
     import traceback
     try:
-        from .services.face_engine import get_face_cascade, cv2
-        import os
-        casc = get_face_cascade()
-        bundled_path = os.path.join(os.path.dirname(__file__), "services", "haarcascade_frontalface_default.xml")
-        
-        c1 = cv2.CascadeClassifier(bundled_path)
-        cv2_path = os.path.join(getattr(cv2, "data", None) and cv2.data.haarcascades or "", "haarcascade_frontalface_default.xml")
-        c2 = cv2.CascadeClassifier(cv2_path)
-        
+        import cv2
         return {
             "status": "healthy",
-            "cv2": cv2 is not None,
-            "cascade_loaded": casc is not None and not casc.empty(),
-            "bundled_path": bundled_path,
-            "bundled_exists": os.path.exists(bundled_path),
-            "c1_empty": c1.empty(),
-            "cv2_path": cv2_path,
-            "cv2_path_exists": os.path.exists(cv2_path),
-            "c2_empty": c2.empty(),
+            "cv2_file": getattr(cv2, "__file__", None),
+            "cv2_version": getattr(cv2, "__version__", None),
+            "has_CascadeClassifier": hasattr(cv2, "CascadeClassifier"),
+            "dir_sample": [x for x in dir(cv2) if not x.startswith("_")][:25]
         }
     except Exception as e:
         return {"status": "error", "error": str(e), "trace": traceback.format_exc()}
