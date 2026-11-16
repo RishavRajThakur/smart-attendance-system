@@ -92,7 +92,7 @@ def check_image_quality(gray_img: np.ndarray) -> Tuple[bool, float]:
 
 def detect_faces(bgr_image: np.ndarray) -> List[Tuple[int, int, int, int]]:
     """
-    Detect faces in image.
+    Detect faces in image using robust two-stage Haar cascade.
     Returns list of bounding boxes: [(x, y, w, h), ...]
     """
     if cv2 is not None:
@@ -103,11 +103,23 @@ def detect_faces(bgr_image: np.ndarray) -> List[Tuple[int, int, int, int]]:
                 gray = bgr_image
             cascade = get_face_cascade()
             if cascade is not None:
+                # 1. Primary detection pass
                 faces = cascade.detectMultiScale(
                     gray,
                     scaleFactor=1.15,
-                    minNeighbors=5,
-                    minSize=(60, 60),
+                    minNeighbors=4,
+                    minSize=(40, 40),
+                    flags=cv2.CASCADE_SCALE_IMAGE
+                )
+                if len(faces) > 0:
+                    return [tuple(map(int, f)) for f in faces]
+
+                # 2. Relaxed secondary pass for dim light or angled faces
+                faces = cascade.detectMultiScale(
+                    gray,
+                    scaleFactor=1.10,
+                    minNeighbors=3,
+                    minSize=(30, 30),
                     flags=cv2.CASCADE_SCALE_IMAGE
                 )
                 if len(faces) > 0:

@@ -150,18 +150,20 @@ def register_student(
             
             if len(faces) == 0:
                 raise HTTPException(status_code=400, detail="No face detected in the photo. Please center your face in good lighting.")
-            if len(faces) > 1:
-                raise HTTPException(status_code=400, detail="Multiple faces detected. Ensure only one person is in front of the camera.")
+            
+            # Select the most prominent face (largest bounding box) to prevent background false-positives
+            faces = sorted(faces, key=lambda f: f[2] * f[3], reverse=True)
+            primary_face = faces[0]
 
             # Extract embedding
-            embedding_vector = extract_face_embedding(bgr_img, faces[0])
+            embedding_vector = extract_face_embedding(bgr_img, primary_face)
 
             # Save reference photo to disk
             filename = f"student_{payload.roll_number.strip().upper()}.jpg"
             filepath = os.path.join(UPLOAD_DIR, filename)
             
             # Crop to face with margin
-            x, y, w, h = faces[0]
+            x, y, w, h = primary_face
             pad = int(0.2 * min(w, h))
             h_img, w_img = bgr_img.shape[:2]
             crop = bgr_img[max(0, y-pad):min(h_img, y+h+pad), max(0, x-pad):min(w_img, x+w+pad)]
@@ -231,14 +233,16 @@ def enroll_student_face(
         faces = detect_faces(bgr_img)
         if len(faces) == 0:
             raise HTTPException(status_code=400, detail="No face detected in the photo. Please ensure face is centered with adequate lighting.")
-        if len(faces) > 1:
-            raise HTTPException(status_code=400, detail="Multiple faces detected. Ensure only one person is in front of the camera.")
+        
+        # Select the most prominent face (largest bounding box)
+        faces = sorted(faces, key=lambda f: f[2] * f[3], reverse=True)
+        primary_face = faces[0]
 
-        embedding_vector = extract_face_embedding(bgr_img, faces[0])
+        embedding_vector = extract_face_embedding(bgr_img, primary_face)
 
         filename = f"student_{student.roll_number.strip().upper()}.jpg"
         filepath = os.path.join(UPLOAD_DIR, filename)
-        x, y, w, h = faces[0]
+        x, y, w, h = primary_face
         pad = int(0.2 * min(w, h))
         h_img, w_img = bgr_img.shape[:2]
         crop = bgr_img[max(0, y-pad):min(h_img, y+h+pad), max(0, x-pad):min(w_img, x+w+pad)]

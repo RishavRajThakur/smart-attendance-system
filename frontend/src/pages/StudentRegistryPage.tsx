@@ -119,14 +119,38 @@ export const StudentRegistryPage: React.FC<StudentRegistryPageProps> = ({ userRo
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, forPendingStudent = false) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Client-side image resize & compression to ensure instant upload (<100ms)
+    const img = new Image();
     const reader = new FileReader();
     reader.onload = () => {
-      const b64 = reader.result as string;
-      if (forPendingStudent) {
-        setPendingFacePhoto(b64);
-      } else {
-        setFormData((prev) => ({ ...prev, photo_base64: b64 }));
-      }
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 640;
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedB64 = canvas.toDataURL('image/jpeg', 0.85);
+          if (forPendingStudent) {
+            setPendingFacePhoto(compressedB64);
+          } else {
+            setFormData((prev) => ({ ...prev, photo_base64: compressedB64 }));
+          }
+        }
+      };
+      img.src = reader.result as string;
     };
     reader.readAsDataURL(file);
   };

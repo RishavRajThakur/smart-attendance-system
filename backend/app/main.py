@@ -74,6 +74,14 @@ def startup_event():
     finally:
         db.close()
 
+    # 3. Pre-warm AI FaceNet model so first enrollment is instant
+    try:
+        from .services.face_engine import get_facenet_model
+        get_facenet_model()
+        print("[SUCCESS] FaceNet AI Biometric Model pre-warmed in memory.")
+    except Exception as e:
+        print(f"[FaceEngine Notice] Warmup skipped: {e}")
+
 
 # Mount compiled frontend SPA from frontend/dist if available
 FRONTEND_DIST = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
