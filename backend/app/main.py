@@ -37,18 +37,14 @@ app.add_middleware(
 
 @app.get("/api/health")
 def api_health():
-    import traceback
-    try:
-        import cv2
-        return {
-            "status": "healthy",
-            "cv2_file": getattr(cv2, "__file__", None),
-            "cv2_version": getattr(cv2, "__version__", None),
-            "has_CascadeClassifier": hasattr(cv2, "CascadeClassifier"),
-            "dir_sample": [x for x in dir(cv2) if not x.startswith("_")][:25]
-        }
-    except Exception as e:
-        return {"status": "error", "error": str(e), "trace": traceback.format_exc()}
+    from .services.face_engine import get_face_cascade, cv2
+    casc = get_face_cascade()
+    return {
+        "status": "healthy",
+        "cv2_version": getattr(cv2, "__version__", None),
+        "cascade_loaded": casc is not None and not casc.empty(),
+        "biometrics_ready": True
+    }
 
 # Ensure static directories exist
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
