@@ -39,6 +39,7 @@ export const LiveKioskPage: React.FC<LiveKioskPageProps> = ({ onNavigate, userRo
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const scanIntervalRef = useRef<any>(null);
+  const isScanningRef = useRef<boolean>(false);
 
   // Synthesize clean audio chime
   const playChime = () => {
@@ -91,6 +92,18 @@ export const LiveKioskPage: React.FC<LiveKioskPageProps> = ({ onNavigate, userRo
       if (sessionsData.length > 0) {
         const active = sessionsData.find((s) => s.status === 'active') || sessionsData[0];
         setSelectedSessionId(active.id);
+      } else if (coursesData.length > 0) {
+        try {
+          const autoSession = await api.createSession({
+            course_id: coursesData[0].id,
+            session_title: "Regular Class Lecture",
+            match_threshold: 0.58
+          });
+          setSessions([autoSession]);
+          setSelectedSessionId(autoSession.id);
+        } catch {
+          // ignore
+        }
       }
     } catch (err) {
       console.error('Failed to load initial kiosk data', err);
@@ -242,6 +255,7 @@ export const LiveKioskPage: React.FC<LiveKioskPageProps> = ({ onNavigate, userRo
 
     scanIntervalRef.current = setInterval(async () => {
       if (!videoRef.current || !canvasRef.current) return;
+      if (isScanningRef.current) return; // Prevent concurrent frame request stacking
 
       const video = videoRef.current;
       const canvas = canvasRef.current;
@@ -252,25 +266,40 @@ export const LiveKioskPage: React.FC<LiveKioskPageProps> = ({ onNavigate, userRo
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
+      // Downscale frame to max width 640 for instant network transfer (<30 KB)
+      const targetW = 640;
+      const scale = Math.min(1.0, targetW / video.videoWidth);
+      const sendW = Math.round(video.videoWidth * scale);
+      const sendH = Math.round(video.videoHeight * scale);
+
       const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = video.videoWidth;
-      tempCanvas.height = video.videoHeight;
+      tempCanvas.width = sendW;
+      tempCanvas.height = sendH;
       const tempCtx = tempCanvas.getContext('2d');
       if (!tempCtx) return;
-      tempCtx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-      const base64Data = tempCanvas.toDataURL('image/jpeg', 0.85);
+      tempCtx.drawImage(video, 0, 0, sendW, sendH);
+      const base64Data = tempCanvas.toDataURL('image/jpeg', 0.80);
 
+      isScanningRef.current = true;
       try {
         const response = await api.recognizeFrame({
           session_id: selectedSessionId || undefined,
           image_base64: base64Data,
-          min_confidence: 0.60
+          min_confidence: 0.58
         });
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        const scaleX = canvas.width / sendW;
+        const scaleY = canvas.height / sendH;
+
         for (const face of response.faces) {
-          const [x, y, w, h] = face.bounding_box;
+          const [bx, by, bw, bh] = face.bounding_box;
+          const x = bx * scaleX;
+          const y = by * scaleY;
+          const w = bw * scaleX;
+          const h = bh * scaleY;
+
           let strokeColor = '#f59e0b';
           let tagText = 'Unknown Student';
 
@@ -311,8 +340,10 @@ export const LiveKioskPage: React.FC<LiveKioskPageProps> = ({ onNavigate, userRo
         setScanStats((s) => ({ ...s, totalScanned: s.totalScanned + response.faces.length }));
       } catch (err) {
         console.error('Frame recognition error', err);
+      } finally {
+        isScanningRef.current = false;
       }
-    }, 850);
+    }, 600);
   };
 
   // If Admin attempts to view Kiosk, display institutional administrative safety guard
@@ -440,11 +471,15 @@ export const LiveKioskPage: React.FC<LiveKioskPageProps> = ({ onNavigate, userRo
               onChange={(e) => setSelectedSessionId(Number(e.target.value))}
               className="bg-transparent text-xs text-slate-800 font-bold focus:outline-none cursor-pointer max-w-[220px] truncate"
             >
-              {sessions.map((s) => (
-                <option key={s.id} value={s.id} className="bg-white text-slate-900">
-                  {s.course_code ? `${s.course_code} - ` : ''}{s.session_title}
-                </option>
-              ))}
+              {sessions.length === 0 ? (
+                <option value="">No Session (Click + New Session)</option>
+              ) : (
+                sessions.map((s) => (
+                  <option key={s.id} value={s.id} className="bg-white text-slate-900">
+                    {s.course_code ? `${s.course_code} - ` : ''}{s.session_title}
+                  </option>
+                ))
+              )}
             </select>
           </div>
 

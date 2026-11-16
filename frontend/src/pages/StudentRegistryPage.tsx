@@ -100,13 +100,25 @@ export const StudentRegistryPage: React.FC<StudentRegistryPageProps> = ({ userRo
       alert('Camera feed is still initializing. Please wait a moment for your video to appear.');
       return;
     }
+    const maxDim = 480;
+    let w = videoRef.current.videoWidth || 640;
+    let h = videoRef.current.videoHeight || 480;
+    if (w > maxDim || h > maxDim) {
+      if (w > h) {
+        h = Math.round((h * maxDim) / w);
+        w = maxDim;
+      } else {
+        w = Math.round((w * maxDim) / h);
+        h = maxDim;
+      }
+    }
     const canvas = document.createElement('canvas');
-    canvas.width = videoRef.current.videoWidth || 640;
-    canvas.height = videoRef.current.videoHeight || 480;
+    canvas.width = w;
+    canvas.height = h;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-    const base64 = canvas.toDataURL('image/jpeg', 0.92);
+    ctx.drawImage(videoRef.current, 0, 0, w, h);
+    const base64 = canvas.toDataURL('image/jpeg', 0.82);
 
     if (forPendingStudent) {
       setPendingFacePhoto(base64);
@@ -238,7 +250,7 @@ export const StudentRegistryPage: React.FC<StudentRegistryPageProps> = ({ userRo
             onChange={(e) => setSearch(e.target.value)}
             className="px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 w-64"
           />
-          {userRole === 'admin' && (
+          {(userRole === 'admin' || userRole === 'faculty') && (
             <button
               onClick={() => { setShowModal(true); setFormError(null); }}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/25 transition shrink-0 cursor-pointer"
@@ -326,7 +338,7 @@ export const StudentRegistryPage: React.FC<StudentRegistryPageProps> = ({ userRo
                       )}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {userRole === 'admin' ? (
+                      {(userRole === 'admin' || userRole === 'faculty') ? (
                         <button
                           onClick={() => handleDelete(st.id, st.full_name)}
                           className="px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"

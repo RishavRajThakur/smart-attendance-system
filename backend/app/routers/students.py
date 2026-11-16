@@ -280,13 +280,16 @@ def enroll_student_face(
 @router.delete("/{student_id}")
 def delete_student(
     student_id: int,
-    current_user: Any = Depends(require_admin),
+    current_user: Any = Depends(require_faculty_or_admin),
     db: Session = Depends(get_db)
 ):
-    """Admin-only: Deactivate or remove student from the institutional registry."""
+    """Authorized for Faculty and Administrators: Remove student from the institutional registry."""
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
+
+    # Clean up associated attendance records before deleting student
+    db.query(AttendanceRecord).filter(AttendanceRecord.student_id == student_id).delete()
     db.delete(student)
     db.commit()
 

@@ -27,9 +27,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY backend/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r ./requirements.txt
 
-# Pre-cache FaceNet pretrained weights into Docker layer for instant zero-wait enrollment
-RUN python -c "from facenet_pytorch import InceptionResnetV1; InceptionResnetV1(pretrained='vggface2')"
-
 # Copy backend application source code
 COPY backend/ ./
 
