@@ -34,6 +34,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.get("/api/health")
+def api_health():
+    from .services.face_engine import get_face_cascade, cv2
+    casc = get_face_cascade()
+    return {
+        "status": "healthy",
+        "cv2": cv2 is not None,
+        "cascade_loaded": casc is not None and not casc.empty(),
+        "version": "v2.1-bundled-biometrics"
+    }
+
 # Ensure static directories exist
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 UPLOADS_DIR = os.path.join(STATIC_DIR, "uploads")
